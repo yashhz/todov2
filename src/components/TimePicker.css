@@ -1,0 +1,236 @@
+/* TimePicker Styles */
+
+.time-picker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-5);
+    padding: var(--sp-4);
+}
+
+/* ─── Digital Display ───────────────────────────── */
+.tp-display {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-1);
+}
+
+.tp-display__segment {
+    padding: var(--sp-2) var(--sp-3);
+    background: var(--surface-glass);
+    border: 2px solid transparent;
+    border-radius: var(--radius-md);
+    font-size: var(--fs-3xl);
+    font-weight: var(--fw-black);
+    font-family: var(--font-heading);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+    min-width: 80px;
+    text-align: center;
+    line-height: 1;
+}
+
+.tp-display__segment--active {
+    background: var(--accent-muted);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.tp-display__segment:hover:not(.tp-display__segment--active) {
+    background: var(--surface-glass-hover);
+    color: var(--text-primary);
+}
+
+.tp-display__colon {
+    font-size: var(--fs-3xl);
+    font-weight: var(--fw-black);
+    font-family: var(--font-heading);
+    color: var(--text-tertiary);
+    animation: pulse-glow 1.5s ease-in-out infinite;
+    line-height: 1;
+}
+
+.tp-period {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-left: var(--sp-2);
+}
+
+.tp-period__btn {
+    padding: var(--sp-1) var(--sp-2);
+    background: var(--surface-glass);
+    border: 1.5px solid transparent;
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-bold);
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+    font-family: var(--font-body);
+    letter-spacing: var(--ls-wide);
+}
+
+.tp-period__btn--active {
+    background: var(--accent-muted);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.tp-period__btn:hover:not(.tp-period__btn--active) {
+    background: var(--surface-glass-hover);
+    color: var(--text-primary);
+}
+
+/* ─── Clock Face ────────────────────────────────── */
+.tp-clock {
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--surface-border);
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    touch-action: none;
+    transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.tp-clock:hover {
+    border-color: var(--surface-border-hover);
+}
+
+.tp-clock__center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    background: var(--accent-primary);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    box-shadow: var(--shadow-glow);
+}
+
+.tp-clock__hand {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2px;
+    height: 32%;
+    background: var(--accent-primary);
+    transform-origin: bottom center;
+    transform: rotate(0deg);
+    z-index: 2;
+    margin-left: -1px;
+    margin-top: -32%;
+    transition: transform var(--duration-normal) var(--ease-spring);
+    border-radius: 2px;
+}
+
+.tp-clock__hand-dot {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 32px;
+    height: 32px;
+    background: var(--accent-primary);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.2;
+}
+
+.tp-clock__number {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    color: var(--text-secondary);
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-spring);
+    z-index: 4;
+    font-family: var(--font-body);
+}
+
+.tp-clock__number:hover {
+    background: var(--surface-glass-hover);
+    color: var(--text-primary);
+    transform: translate(-50%, -50%) scale(1.15);
+}
+
+.tp-clock__number--active {
+    background: var(--accent-primary);
+    color: var(--text-on-accent);
+    font-weight: var(--fw-bold);
+}
+
+.tp-clock__number--active:hover {
+    background: var(--accent-primary);
+    color: var(--text-on-accent);
+}
+
+/* ─── Presets ───────────────────────────────────── */
+.tp-presets {
+    display: flex;
+    gap: var(--sp-2);
+    width: 100%;
+}
+
+.tp-preset-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: var(--sp-2) var(--sp-1);
+    background: var(--surface-glass);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-md);
+    color: var(--text-tertiary);
+    font-size: 10px;
+    font-weight: var(--fw-medium);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+    font-family: var(--font-body);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+}
+
+.tp-preset-btn:hover {
+    background: var(--surface-glass-hover);
+    color: var(--text-primary);
+    border-color: var(--surface-border-hover);
+    transform: translateY(-1px);
+}
+
+.tp-preset-btn span:first-child {
+    font-size: var(--fs-lg);
+}
+
+/* ─── Done Button ───────────────────────────────── */
+.tp-done-btn {
+    width: 100%;
+    padding: var(--sp-3);
+    background: var(--accent-primary);
+    color: var(--text-on-accent);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--fs-base);
+    font-weight: var(--fw-semibold);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+    font-family: var(--font-body);
+}
+
+.tp-done-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-glow);
+}

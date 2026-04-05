@@ -1,0 +1,180 @@
+/* Modal Styles — Portal-based, properly detached overlay */
+
+/* ─── Overlay ───────────────────────────────────────────────
+   Covers the full viewport. Uses flex-start so tall modals
+   pin to the top and scroll internally rather than getting
+   clipped at both ends when align-items: center is used.
+   ───────────────────────────────────────────────────────── */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal);
+    display: flex;
+    align-items: flex-start;
+    /* pin to top, not center */
+    justify-content: center;
+    padding: 5vh var(--sp-6) var(--sp-6);
+    /* 5vh top breathing room */
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    animation: fadeIn var(--duration-fast) var(--ease-out) both;
+    /* Overlay itself scrolls if content somehow exceeds 100vh */
+    overflow-y: auto;
+}
+
+/* ─── Modal Box ─────────────────────────────────────────────
+   max-height: 90vh ensures the content can never grow past
+   the screen. overflow-y: auto on this element is what
+   actually makes the internal scroll work.
+   ───────────────────────────────────────────────────────── */
+.modal-content {
+    background: linear-gradient(160deg,
+            rgba(30, 30, 38, 0.98) 0%,
+            rgba(18, 18, 22, 0.99) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-2xl);
+    width: 100%;
+    max-height: 90vh;
+    /* hard cap — scroll kicks in here */
+    overflow-y: auto;
+    animation: modalSlideIn var(--duration-slow) var(--ease-spring) both;
+    box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.6),
+        0 0 1px rgba(255, 255, 255, 0.1) inset,
+        0 1px 0 rgba(255, 255, 255, 0.06) inset;
+    /* Ensure modal always starts at the top of its scroll */
+    scroll-padding-top: 0;
+}
+
+@keyframes modalSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.97);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-content--sm {
+    max-width: 420px;
+}
+
+.modal-content--md {
+    max-width: 580px;
+}
+
+.modal-content--lg {
+    max-width: 760px;
+}
+
+/* ─── Header ────────────────────────────────────────────── */
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--sp-6) var(--sp-8) 0;
+    /* Sticky so title + close button stay visible while scrolling form */
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: linear-gradient(160deg,
+            rgba(30, 30, 38, 0.98) 0%,
+            rgba(18, 18, 22, 0.99) 100%);
+    padding-bottom: var(--sp-4);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: var(--sp-2);
+    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+}
+
+.modal-title {
+    font-family: var(--font-heading);
+    font-size: var(--fs-xl);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    letter-spacing: var(--ls-tight);
+}
+
+.modal-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-full);
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all var(--duration-normal) var(--ease-out);
+    flex-shrink: 0;
+}
+
+.modal-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    transform: rotate(90deg) scale(1.1);
+}
+
+/* ─── Body ──────────────────────────────────────────────── */
+.modal-body {
+    padding: var(--sp-4) var(--sp-8) var(--sp-8);
+}
+
+/* ─── Scrollbar inside modal ────────────────────────────── */
+.modal-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius-full);
+}
+
+/* ─── Mobile — full-height bottom sheet ─────────────────── */
+@media (max-width: 640px) {
+    .modal-overlay {
+        padding: 0;
+        align-items: flex-end;
+    }
+
+    .modal-content {
+        max-height: 92vh;
+        border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+        animation: modalSlideUp var(--duration-slow) var(--ease-spring) both;
+    }
+
+    @keyframes modalSlideUp {
+        0% {
+            opacity: 0;
+            transform: translateY(100%);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .modal-content--sm,
+    .modal-content--md,
+    .modal-content--lg {
+        max-width: 100%;
+    }
+
+    .modal-header {
+        padding: var(--sp-5) var(--sp-5) var(--sp-4);
+        border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+    }
+
+    .modal-body {
+        padding: var(--sp-4) var(--sp-5) var(--sp-6);
+    }
+}

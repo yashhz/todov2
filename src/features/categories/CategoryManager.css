@@ -1,0 +1,162 @@
+.cat-manager {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-6);
+}
+
+.cat-manager__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    max-height: 40vh;
+    overflow-y: auto;
+    padding-right: var(--sp-2);
+}
+
+.cat-manager__empty {
+    color: var(--text-tertiary);
+    text-align: center;
+    padding: var(--sp-4) 0;
+    font-size: var(--fs-sm);
+}
+
+.cat-manager__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--sp-3) var(--sp-4);
+    background: var(--surface-glass);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-md);
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.cat-manager__item:hover {
+    background: var(--surface-glass-hover);
+    border-color: var(--surface-border-hover);
+}
+
+.cat-manager__item-info {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+}
+
+.cat-manager__item-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: var(--radius-full);
+}
+
+.cat-manager__item-name {
+    font-size: var(--fs-base);
+    color: var(--text-primary);
+    font-weight: var(--fw-medium);
+}
+
+.cat-manager__item-icon {
+    font-size: var(--fs-md);
+}
+
+.cat-manager__delete-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-tertiary);
+    font-size: var(--fs-md);
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.cat-manager__delete-btn:hover {
+    color: var(--color-danger);
+    background: var(--color-danger-muted);
+}
+
+/* ─── Add Section ───────────────────────────────── */
+.cat-manager__add-section {
+    padding-top: var(--sp-6);
+    border-top: 1px solid var(--surface-border);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+}
+
+.cat-manager__add-title {
+    font-size: var(--fs-sm);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wider);
+}
+
+.cat-manager__form-row {
+    display: flex;
+    gap: var(--sp-3);
+}
+
+.cat-manager__input {
+    flex: 1;
+    background: var(--surface-glass);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-md);
+    padding: var(--sp-3) var(--sp-4);
+    color: var(--text-primary);
+    font-size: var(--fs-base);
+    font-family: inherit;
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.cat-manager__input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px var(--accent-muted);
+}
+
+.cat-manager__add-btn {
+    background: var(--accent-primary);
+    color: var(--text-on-accent);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 0 var(--sp-5);
+    font-weight: var(--fw-bold);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+}
+
+.cat-manager__add-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.cat-manager__add-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.cat-manager__colors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+}
+
+.cat-manager__color-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-full);
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform var(--duration-fast), box-shadow var(--duration-fast);
+}
+
+.cat-manager__color-btn:hover {
+    transform: scale(1.1);
+}
+
+.cat-manager__color-btn--active {
+    box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px var(--text-primary);
+}

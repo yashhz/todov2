@@ -1,0 +1,139 @@
+/* ═══════════════════════════════════════════════════════════
+   DESIGN TOKENS — Planify
+   Refined dark — intentional light moments
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+  /* ─── Color Palette ───────────────────────────── */
+  --bg-primary: #0e0e11;
+  --bg-secondary: #111115;
+  --bg-tertiary: #16161a;
+  --bg-elevated: #1c1c21;
+  --bg-hover: #202026;
+
+  --surface-glass: rgba(255, 255, 255, 0.025);
+  --surface-glass-hover: rgba(255, 255, 255, 0.045);
+  --surface-glass-active: rgba(255, 255, 255, 0.065);
+  --surface-border: rgba(255, 255, 255, 0.07);
+  --surface-border-hover: rgba(255, 255, 255, 0.13);
+
+  /* Accent — Deep Blue */
+  --accent-primary: #3b82f6;
+  --accent-secondary: #2563eb;
+  --accent-muted: rgba(59, 130, 246, 0.12);
+  --accent-glow: rgba(59, 130, 246, 0.2);
+  --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+
+  /* Semantic Colors */
+  --color-success: #22c55e;
+  --color-success-muted: rgba(34, 197, 94, 0.12);
+  --color-warning: #f59e0b;
+  --color-warning-muted: rgba(245, 158, 11, 0.12);
+  --color-danger: #ef4444;
+  --color-danger-muted: rgba(239, 68, 68, 0.12);
+  --color-info: #3b82f6;
+  --color-info-muted: rgba(59, 130, 246, 0.12);
+
+  /* Category Colors */
+  --cat-rose: #fb7185;
+  --cat-violet: #a78bfa;
+  --cat-cyan: #22d3ee;
+  --cat-emerald: #34d399;
+  --cat-orange: #fb923c;
+  --cat-pink: #f472b6;
+  --cat-blue: #60a5fa;
+  --cat-lime: #a3e635;
+
+  /* Text */
+  --text-primary: rgba(255, 255, 255, 0.90);
+  --text-secondary: rgba(255, 255, 255, 0.50);
+  --text-tertiary: rgba(255, 255, 255, 0.28);
+  --text-accent: #3b82f6;
+  --text-on-accent: #0e0e11;
+
+  /* ─── Typography ──────────────────────────────── */
+  --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: 'Geist', 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Geist', 'Satoshi', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Standardized Typography Scale */
+  --fs-metadata: 0.6875rem;   /* 11px - metadata, labels */
+  --fs-body: 0.8125rem;       /* 13px - body text, descriptions */
+  --fs-card-title: 0.9375rem; /* 15px - card titles */
+  --fs-button: 0.875rem;      /* 14px - button text */
+  --fs-page-title: 2rem;      /* 32px - page titles */
+  
+  /* Legacy sizes (for gradual migration) */
+  --fs-xs: 0.6875rem;   /* 11px */
+  --fs-sm: 0.8125rem;   /* 13px */
+  --fs-base: 0.9375rem; /* 15px */
+  --fs-md: 1.0625rem;   /* 17px */
+  --fs-lg: 1.25rem;     /* 20px */
+  --fs-xl: 1.5rem;      /* 24px */
+  --fs-2xl: 2rem;       /* 32px */
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  --lh-tight: 1.2;      /* headings */
+  --lh-normal: 1.5;     /* body text */
+
+  --ls-tight: -0.02em;
+  --ls-normal: 0;
+  --ls-wide: 0.1em;     /* metadata, labels */
+
+  /* ─── Spacing Scale (4px increments) ──────────── */
+  --sp-1: 0.25rem;   /* 4px */
+  --sp-2: 0.5rem;    /* 8px */
+  --sp-3: 0.75rem;   /* 12px */
+  --sp-4: 1rem;      /* 16px */
+  --sp-5: 1.25rem;   /* 20px */
+  --sp-6: 1.5rem;    /* 24px */
+  --sp-8: 2rem;      /* 32px */
+  --sp-10: 2.5rem;   /* 40px */
+  --sp-12: 3rem;     /* 48px */
+
+  /* ─── Border Radius ───────────────────────────── */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* ─── Shadows ─────────────────────────────────── */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 0 16px var(--accent-glow);
+  --shadow-glow-lg: 0 0 32px var(--accent-glow);
+
+  /* ─── Transitions ─────────────────────────────── */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  --duration-fast: 140ms;
+  --duration-normal: 240ms;
+  --duration-slow: 380ms;
+  --duration-slower: 560ms;
+
+  /* ─── Z-Index Scale ───────────────────────────── */
+  --z-base: 1;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+
+  /* ─── Layout ──────────────────────────────────── */
+  --sidebar-width: 220px;
+  --sidebar-collapsed: 60px;
+  --header-height: 64px;
+  --bottom-nav-height: 64px;
+  --content-max-width: 960px;
+}
