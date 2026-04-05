@@ -15,6 +15,7 @@ import HabitsPage from './features/habits/Habits';
 import ProjectsPage from './features/projects/Projects';
 import ProjectDetail from './features/projects/ProjectDetail';
 import SettingsPage from './features/settings/Settings';
+import CalendarView from './features/calendar/Calendar';
 
 function AppShell() {
     const [cmdOpen, setCmdOpen] = useState(false);
@@ -36,6 +37,7 @@ function AppShell() {
             <Routes>
                 <Route element={<Layout onOpenCmd={() => setCmdOpen(true)} />}>
                     <Route path="/" element={<Dashboard />} />
+                    <Route path="/calendar" element={<CalendarView />} />
                     <Route path="/tasks" element={<TasksPage />} />
                     <Route path="/goals" element={<GoalsPage />} />
                     <Route path="/goals/:id" element={<GoalDetail />} />

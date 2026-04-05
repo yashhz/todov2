@@ -81,8 +81,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
         }
         case 'LOG_PROGRESS': {
             const targetGoal = state.goals.find(g => g.id === action.payload.goalId);
-            // Block contributions to outcome goals — they derive progress from children/projects
-            if (!targetGoal || targetGoal.goalType === 'outcome') return state;
+            // Block contributions to milestone/continuous goals — they derive progress from children/tasks/habits
+            if (!targetGoal || targetGoal.goalType !== 'measurable') return state;
             return {
                 ...state,
                 goals: state.goals.map(g =>
@@ -100,8 +100,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
         case 'LOG_PROGRESS_CORRECTION': {
             const { goalId, delta, note } = action.payload;
             const correctionTarget = state.goals.find(g => g.id === goalId);
-            // Block corrections to outcome goals
-            if (!correctionTarget || correctionTarget.goalType === 'outcome') return state;
+            // Block corrections to milestone/continuous goals
+            if (!correctionTarget || correctionTarget.goalType !== 'measurable') return state;
             const correctionEntry = {
                 id: Math.random().toString(36).slice(2),
                 date: new Date().toISOString(),

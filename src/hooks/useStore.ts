@@ -128,7 +128,7 @@ export function useGoals() {
             title: data.title,
             description: data.description || '',
             why: data.why || '',
-            goalType: data.goalType || (data.targetValue !== null ? 'measurable' : 'outcome'),
+            goalType: data.goalType || (data.targetValue !== null ? 'measurable' : 'milestone'),
             targetValue: data.targetValue,
             currentValue: 0,
             unit: data.unit,
@@ -172,31 +172,55 @@ export function useGoals() {
         current: number; target: number; percent: number; isUmbrella: boolean;
     } => {
         const children = state.goals.filter(g => g.parentGoalId === goalId);
+        const goal = state.goals.find(g => g.id === goalId);
+        if (!goal) return { current: 0, target: 0, percent: 0, isUmbrella: false };
+
         if (children.length === 0) {
-            const goal = state.goals.find(g => g.id === goalId);
-            if (!goal) return { current: 0, target: 0, percent: 0, isUmbrella: false };
-            if (goal.goalType === 'outcome' || goal.targetValue === null) {
+            if (goal.goalType === 'continuous' || goal.targetValue === null) {
                 return { current: 0, target: 0, percent: 0, isUmbrella: true };
             }
+            if (goal.goalType === 'milestone') {
+                 // Derived from tasks
+                 const linkedTasks = state.tasks.filter(t => t.linkedGoalId === goalId || t.goalLinks.some(l => l.goalId === goalId));
+                 if (linkedTasks.length === 0) return { current: 0, target: 0, percent: 0, isUmbrella: true };
+                 const completed = linkedTasks.filter(t => t.completed).length;
+                 const percent = (completed / linkedTasks.length) * 100;
+                 return { current: completed, target: linkedTasks.length, percent, isUmbrella: false };
+            }
+            // Measurable
             const percent = goal.targetValue > 0
                 ? Math.min((goal.currentValue / goal.targetValue) * 100, 100)
                 : 0;
             return { current: goal.currentValue, target: goal.targetValue, percent, isUmbrella: false };
         }
-        // Only average MEASURABLE children — outcome children are themselves aggregators
-        const measurableChildren = children.filter(c => c.goalType === 'measurable' && c.targetValue !== null && c.targetValue > 0);
-        if (measurableChildren.length === 0) {
-            // Parent has children but none are measurable — can't derive a meaningful %
+
+        // Has sub-goals: average them
+        let totalPercent = 0;
+        let validChildrenCount = 0;
+
+        for (const child of children) {
+             if (child.goalType === 'continuous') continue;
+
+             if (child.goalType === 'measurable' && child.targetValue && child.targetValue > 0) {
+                 totalPercent += Math.min((child.currentValue / child.targetValue) * 100, 100);
+                 validChildrenCount++;
+             } else if (child.goalType === 'milestone') {
+                 const linkedTasks = state.tasks.filter(t => t.linkedGoalId === child.id || t.goalLinks.some(l => l.goalId === child.id));
+                 if (linkedTasks.length > 0) {
+                     const completed = linkedTasks.filter(t => t.completed).length;
+                     totalPercent += (completed / linkedTasks.length) * 100;
+                     validChildrenCount++;
+                 }
+             }
+        }
+
+        if (validChildrenCount === 0) {
             return { current: 0, target: 100, percent: 0, isUmbrella: true };
         }
-        let totalPercent = 0;
-        for (const child of measurableChildren) {
-            const p = Math.min((child.currentValue / child.targetValue!) * 100, 100);
-            totalPercent += p;
-        }
-        const avgPercent = totalPercent / measurableChildren.length;
+
+        const avgPercent = totalPercent / validChildrenCount;
         return { current: Math.round(avgPercent), target: 100, percent: avgPercent, isUmbrella: true };
-    }, [state.goals]);
+    }, [state.goals, state.tasks]);
 
     const getDaysSinceProgress = useCallback((goalId: string): number => {
         const goal = state.goals.find(g => g.id === goalId);

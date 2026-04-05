@@ -2,7 +2,8 @@
    DASHBOARD — Editorial layout: Anchor + Day Score sidebar
    ═══════════════════════════════════════════════════════════ */
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../contexts/AppContext';
 import { useTasks, useGoals, useHabits, useProjects } from '../../hooks/useStore';
 import {
@@ -11,8 +12,9 @@ import {
     formatDateStr,
 } from '../../services/recurrence';
 import Modal from '../../components/Modal';
+import { SmartInput } from '../../components/SmartInput';
 import { Settings, Circle, Star, Layout as LayoutIcon, Eye, EyeOff } from 'lucide-react';
-import type { Goal, Task, Habit, DashboardSection } from '../../types';
+import type { Goal, Task, Habit, DashboardSection, ParsedCommand } from '../../types';
 import './Dashboard.css';
 
 // ─── Helpers ──────────────────────────────────────
@@ -90,6 +92,31 @@ function TaskRow({ task, projectColor, onToggle }: { task: Task; projectColor: s
                         {task.tags.map(t => <span key={t} className="d-task-tag">#{t}</span>)}
                     </div>
                 )}
+            </div>
+        </div>
+    );
+}
+
+// ─── Today Timeline ────────────────────────────────
+function TimelineRow({ task, projectColor, onToggle }: { task: Task; projectColor: string; onToggle: () => void }) {
+    return (
+        <div className={`d-timeline-row ${task.completed ? 'd-timeline-row--done' : ''}`} onClick={onToggle}>
+            <div className="d-timeline-time">
+                {task.dueTime ? formatTime12(task.dueTime) : 'Anytime'}
+            </div>
+            <div className="d-timeline-content">
+                <div className={`d-task-check ${task.completed ? 'd-task-check--done' : ''}`}>
+                    {task.completed && (
+                        <svg width="8" height="7" viewBox="0 0 8 7" fill="none">
+                            <path d="M1 3.5L3 5.5L7 1" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                    )}
+                </div>
+                <div className="d-task-main">
+                    <div className="d-task-bar" style={{ background: projectColor }} />
+                    <span className="d-task-title">{task.title}</span>
+                    {task.duration && <span className="d-timeline-duration">{task.duration}m</span>}
+                </div>
             </div>
         </div>
     );
@@ -216,10 +243,11 @@ const DEFAULT_SECTIONS: DashboardSection[] = [
 
 export default function Dashboard() {
     const { state, dispatch } = useAppContext();
-    const { tasks, toggleTask } = useTasks();
+    const { tasks, toggleTask, addTask } = useTasks();
     const { goals, logProgress, getAggregateProgress, getParentGoals } = useGoals();
-    const { habits, toggleHabitToday, toggleHabit } = useHabits();
+    const { habits, toggleHabitToday, toggleHabit, addHabit } = useHabits();
     const { projects } = useProjects();
+    const navigate = useNavigate();
     
     const [progressModal, setProgressModal] = useState<string | null>(null);
     const [progressInput, setProgressInput] = useState('');
@@ -330,6 +358,59 @@ export default function Dashboard() {
 
     const isVisible = (id: string) => sections.find(s => s.id === id)?.visible !== false;
 
+    const handleSmartInputSubmit = useCallback((commands: ParsedCommand[]) => {
+        commands.forEach(p => {
+            if (!p.title.trim() && p.type !== 'goal') return;
+
+            if (p.type === 'goal') {
+                navigate('/goals', { state: { prefill: { title: p.title } } });
+                return;
+            }
+
+            if (p.type === 'habit') {
+                const dayMap: Record<string, number> = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
+                const weekdayNums = [1, 2, 3, 4, 5];
+                const weekendNums = [0, 6];
+
+                let frequency: 'daily' | 'specific_days' = 'daily';
+                let specificDays: number[] = [];
+
+                if (p.recurrence === 'weekdays') {
+                    frequency = 'specific_days';
+                    specificDays = weekdayNums;
+                } else if (p.recurrence === 'weekend') {
+                    frequency = 'specific_days';
+                    specificDays = weekendNums;
+                } else if (p.recurrence && p.recurrence in dayMap) {
+                    frequency = 'specific_days';
+                    specificDays = [dayMap[p.recurrence]];
+                }
+
+                addHabit({
+                    title: p.title,
+                    frequency,
+                    specificDays,
+                    timeOfDay: p.time,
+                    linkedGoalId: p.goalId,
+                    projectId: p.projectId,
+                    contributionValue: null,
+                });
+            } else {
+                // Task
+                addTask({
+                    title: p.title,
+                    dueDate: p.date || todayStr,
+                    dueTime: p.time,
+                    duration: p.duration,
+                    priority: p.priority ?? 'medium',
+                    linkedGoalId: p.goalId,
+                    projectId: p.projectId,
+                    tags: p.tagIds,
+                });
+            }
+        });
+    }, [addTask, addHabit, navigate, todayStr]);
+
     return (
         <div className="dashboard page-enter">
 
@@ -374,6 +455,10 @@ export default function Dashboard() {
                         </div>
                     )}
 
+                    <div style={{ marginBottom: 'var(--sp-6)' }}>
+                         <SmartInput onSubmit={handleSmartInputSubmit} />
+                    </div>
+
                     {isVisible('anchor') && anchorGoal && (
                         <PinnedGoal
                             goal={anchorGoal.goal}
@@ -385,28 +470,24 @@ export default function Dashboard() {
 
                     <div className="d-workspace">
                         {isVisible('tasks') && (
-                            <div className="d-col">
+                            <div className="d-col" style={{ gridColumn: '1 / -1', marginBottom: 'var(--sp-8)' }}>
                                 <div className="d-col__head">
-                                    <span className="d-col__label">Today's tasks</span>
+                                    <span className="d-col__label">Today's Timeline</span>
                                     <span className="d-col__count">{completedTasks.length}/{allTodayTasks.length}</span>
                                 </div>
 
                                 {allTodayTasks.length === 0 ? (
                                     <p className="d-empty">No tasks for today.</p>
                                 ) : (
-                                    <>
-                                        {pendingTasks.map(t => (
-                                            <TaskRow key={t.id} task={t} projectColor={getProjectColor(t)} onToggle={() => toggleTask(t.id)} />
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        {[...allTodayTasks].sort((a, b) => {
+                                            if (!a.dueTime) return 1;
+                                            if (!b.dueTime) return -1;
+                                            return a.dueTime.localeCompare(b.dueTime);
+                                        }).map(t => (
+                                            <TimelineRow key={t.id} task={t} projectColor={getProjectColor(t)} onToggle={() => toggleTask(t.id)} />
                                         ))}
-                                        {completedTasks.length > 0 && (
-                                            <>
-                                                <p className="d-completed-label">Completed</p>
-                                                {completedTasks.map(t => (
-                                                    <TaskRow key={t.id} task={t} projectColor={getProjectColor(t)} onToggle={() => toggleTask(t.id)} />
-                                                ))}
-                                            </>
-                                        )}
-                                    </>
+                                    </div>
                                 )}
                             </div>
                         )}

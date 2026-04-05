@@ -7,6 +7,7 @@ import './Sidebar.css';
 
 const NAV_ITEMS = [
     { path: '/',         icon: '◉', label: 'Dashboard' },
+    { path: '/calendar', icon: '📅', label: 'Calendar' },
     { path: '/tasks',    icon: '☐', label: 'Tasks' },
     { path: '/goals',    icon: '◎', label: 'Goals' },
     { path: '/habits',   icon: '↻', label: 'Habits' },

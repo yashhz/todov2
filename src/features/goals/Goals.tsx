@@ -154,17 +154,27 @@ export default function GoalsPage() {
 
     function handleCreate() {
         if (!formTitle.trim()) return;
-        // Single question: does this goal have a measurable number target?
-        const isMeasurable = hasFinishLine === true;
-        if (isMeasurable && (!formTarget || !formUnit.trim())) return;
+
+        let goalType: GoalType = 'milestone';
+        let targetValue: number | null = null;
+        let unit: string | null = null;
+
+        if (hasFinishLine === true) {
+            if (!formTarget || !formUnit.trim()) return;
+            goalType = 'measurable';
+            targetValue = parseFloat(formTarget);
+            unit = formUnit.trim();
+        } else if (hasFinishLine === null && formTarget === 'continuous') {
+            goalType = 'continuous';
+        }
 
         addGoal({
             title: formTitle.trim(),
             description: formDesc.trim(),
             why: formWhy.trim(),
-            goalType: isMeasurable ? 'measurable' : 'outcome',
-            targetValue: isMeasurable ? parseFloat(formTarget) : null,
-            unit: isMeasurable ? formUnit.trim() : null,
+            goalType,
+            targetValue,
+            unit,
             color: formColor,
             icon: formIcon,
             parentGoalId: formParentId,
@@ -240,7 +250,7 @@ export default function GoalsPage() {
                     </button>
                     {showFilters === 'type' && (
                         <div className="sentence-mini-popover glass animate-pop-in">
-                            {(['all', 'measurable', 'outcome'] as const).map(t => (
+                            {(['all', 'measurable', 'milestone', 'continuous'] as const).map(t => (
                                 <button key={t} className={`mini-opt ${filterType === t ? 'mini-opt--active' : ''}`} onClick={() => { setFilterType(t); setShowFilters(null); }}>
                                     {t === 'all' ? 'Any type' : t.charAt(0).toUpperCase() + t.slice(1)}
                                 </button>
@@ -275,14 +285,8 @@ export default function GoalsPage() {
                             if (filterType !== 'all' && g.goalType !== filterType) return false;
                             if (filterStatus !== 'all') {
                                 const aggProgress = getAggregateProgress(g.id);
-                                const subGoals = getSubGoals(g.id);
-                                const hasChildren = subGoals.length > 0;
-                                const progressPercent = hasChildren || aggProgress.isUmbrella 
-                                    ? aggProgress.percent 
-                                    : g.targetValue && g.targetValue > 0 
-                                        ? Math.min((g.currentValue / g.targetValue) * 100, 100) 
-                                        : 0;
-                                const isCompleted = progressPercent >= 100;
+                                const progressPercent = aggProgress.percent;
+                                const isCompleted = g.goalType !== 'continuous' && progressPercent >= 100;
                                 if (filterStatus === 'active' && isCompleted) return false;
                                 if (filterStatus === 'completed' && !isCompleted) return false;
                             }
@@ -306,11 +310,7 @@ export default function GoalsPage() {
                         const parentGoal = goal.parentGoalId ? goals.find(g => g.id === goal.parentGoalId) : null;
                         
                         // Calculate progress percentage
-                        const progressPercent = hasChildren || aggProgress.isUmbrella 
-                            ? aggProgress.percent 
-                            : goal.targetValue && goal.targetValue > 0 
-                                ? Math.min((goal.currentValue / goal.targetValue) * 100, 100) 
-                                : 0;
+                        const progressPercent = aggProgress.percent;
 
                         // Build metadata
                         const metadata = [];
@@ -348,23 +348,25 @@ export default function GoalsPage() {
                         return (
                             <Card
                                 key={goal.id}
-                                statusType="ring"
+                                statusType={goal.goalType === 'continuous' ? 'dot' : 'ring'}
                                 statusValue={progressPercent}
-                                statusColor={progressPercent >= 100 ? 'var(--color-success)' : 'var(--accent-primary)'}
+                                statusColor={progressPercent >= 100 && goal.goalType !== 'continuous' ? 'var(--color-success)' : 'var(--accent-primary)'}
                                 title={goal.title}
                                 subtitle={
-                                    hasChildren || aggProgress.isUmbrella
-                                        ? progressPercent > 0
-                                            ? `${Math.round(progressPercent)}% across sub-goals`
-                                            : 'Outcome Goal'
-                                        : goal.targetValue !== null
-                                            ? `${goal.currentValue.toLocaleString()} / ${goal.targetValue.toLocaleString()} ${goal.unit}`
-                                            : 'Outcome Goal'
+                                    goal.goalType === 'continuous'
+                                        ? 'Continuous Journey'
+                                        : goal.goalType === 'milestone' && !hasChildren
+                                            ? `${Math.round(progressPercent)}% tasks complete`
+                                            : goal.targetValue !== null
+                                                ? `${goal.currentValue.toLocaleString()} / ${goal.targetValue.toLocaleString()} ${goal.unit}`
+                                                : progressPercent > 0
+                                                    ? `${Math.round(progressPercent)}% across sub-goals`
+                                                    : 'Milestone'
                                 }
                                 metadata={metadata}
                                 actions={
                                     <>
-                                        {!hasChildren && !aggProgress.isUmbrella && progressPercent < 100 && goal.targetValue !== null && (
+                                        {goal.goalType === 'measurable' && progressPercent < 100 && goal.targetValue !== null && (
                                             <button
                                                 className="card__action-btn"
                                                 onClick={(e) => {
@@ -393,7 +395,7 @@ export default function GoalsPage() {
                                 }
                                 onClick={() => navigate(`/goals/${goal.id}`)}
                             >
-                                {goal.targetValue !== null && !hasChildren && (
+                                {goal.goalType === 'measurable' && goal.targetValue !== null && (
                                     <ProgressBar
                                         value={goal.currentValue}
                                         max={goal.targetValue}
@@ -499,25 +501,29 @@ export default function GoalsPage() {
                             <div className="m-form__section">
                                 <span className="m-form__section-label">Type</span>
                                 <div className="m-form__row m-form__row--between">
-                                    <span style={{fontSize: '14px', color: 'var(--text-secondary)'}}>Track with a number?</span>
-                                    <div className="m-form__row" style={{gap: '8px'}}>
+                                    <div className="m-form__row" style={{gap: '8px', width: '100%', flexWrap: 'nowrap', overflowX: 'auto', paddingBottom: '4px'}}>
                                         <button
                                             type="button"
                                             className={`m-form__pill ${hasFinishLine === true ? 'm-form__pill--active' : ''}`}
                                             onClick={() => setHasFinishLine(true)}
                                             style={hasFinishLine === true ? {background: 'var(--accent-primary)', color: 'black'} : {}}
-                                        >Yes — Measurable</button>
+                                        >Measurable (Target)</button>
                                         <button
                                             type="button"
                                             className={`m-form__pill ${hasFinishLine === false ? 'm-form__pill--active' : ''}`}
                                             onClick={() => setHasFinishLine(false)}
-                                        >No — Outcome</button>
+                                        >Milestone (Tasks)</button>
+                                        <button
+                                            type="button"
+                                            className={`m-form__pill ${hasFinishLine === null && formTarget === 'continuous' ? 'm-form__pill--active' : ''}`}
+                                            onClick={() => { setHasFinishLine(null); setFormTarget('continuous'); }}
+                                        >Continuous (Habits)</button>
                                     </div>
                                 </div>
                             </div>
                         )}
 
-                        {(formParentId || hasFinishLine === true) && (
+                        {(formParentId || hasFinishLine === true) && formTarget !== 'continuous' && (
                             <div className="m-form__section">
                                 <span className="m-form__section-label">Target</span>
                                 <div className="m-form__row animate-fade-in-up" style={{gap: '12px'}}>
@@ -592,7 +598,7 @@ export default function GoalsPage() {
                             onClick={handleCreate}
                             disabled={
                                 !formTitle.trim() ||
-                                (!formParentId && hasFinishLine === null) ||
+                                (!formParentId && hasFinishLine === null && formTarget !== 'continuous') ||
                                 (hasFinishLine === true && (!formTarget || !formUnit.trim()))
                             }
                         >
