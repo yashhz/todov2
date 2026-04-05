@@ -199,6 +199,15 @@
     transform: scale(0.98);
 }
 
+.cal-event--ghost {
+    opacity: 0.7;
+    border: 1px dashed var(--accent-primary);
+    pointer-events: none; /* Let pointer events pass through to capture grid cell */
+    z-index: 100;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    background: rgba(59, 130, 246, 0.2);
+}
+
 .cal-event-title {
     font-size: 13px;
     font-weight: 600;

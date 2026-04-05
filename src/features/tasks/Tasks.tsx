@@ -11,6 +11,8 @@ import { seedDemoData } from '../../services/seeder';
 import Modal from '../../components/Modal';
 import { useKeyboardShortcut } from '../../hooks/useKeyboardShortcut';
 import { Calendar } from 'lucide-react';
+import { SmartInput } from '../../components/SmartInput';
+import type { ParsedCommand } from '../../types';
 import './Tasks.css';
 
 // Format 24h time to 12h with AM/PM
@@ -514,6 +516,22 @@ export default function TasksPage() {
         }
     }
 
+    const handleSmartInputSubmit = (commands: ParsedCommand[]) => {
+        commands.forEach(p => {
+             if (p.type === 'task') {
+                 addTask({
+                     title: p.title,
+                     dueDate: p.date || todayStr(),
+                     dueTime: p.time,
+                     duration: p.duration,
+                     priority: p.priority || 'medium',
+                     tags: p.tagIds,
+                     projectId: p.projectId,
+                     linkedGoalId: p.goalId
+                 });
+             }
+        });
+    };
 
     const activeCount = tasks.filter(t => !t.completed).length;
     const completedCount = tasks.filter(t => t.completed).length;
@@ -534,6 +552,10 @@ export default function TasksPage() {
                         <span>+</span> New Task
                     </button>
                 </div>
+            </div>
+
+            <div style={{ marginBottom: 'var(--sp-6)' }}>
+                <SmartInput onSubmit={handleSmartInputSubmit} placeholder="Add a task... (e.g., 'Review presentation tomorrow 10am !high')" />
             </div>
 
             {/* Smart Sentence Filter */}

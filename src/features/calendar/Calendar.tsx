@@ -81,34 +81,74 @@ export default function CalendarView() {
     };
 
     // Drag state
-    const [draggingTask, setDraggingTask] = useState<{ id: string; yOffset: number; initialTimePx: number; dateIdx: number } | null>(null);
+    const [draggingTask, setDraggingTask] = useState<{ id: string; yOffset: number; dateIdx: number } | null>(null);
+    const [dragGhostPos, setDragGhostPos] = useState<{ top: number; height: number; colIdx: number } | null>(null);
 
     const handleDragStart = (e: React.MouseEvent, task: Task, dateIdx: number) => {
         e.stopPropagation();
         if (!task.dueTime) return;
+
+        // Prevent default drag to use our custom mouse-based dragging for smoother experience
+        e.preventDefault();
+
         const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
         const yOffset = e.clientY - rect.top;
-        setDraggingTask({ id: task.id, yOffset, initialTimePx: timeToPixels(task.dueTime), dateIdx });
-    };
 
-    const handleDragOver = (e: React.DragEvent | React.MouseEvent, dateIdx: number) => {
-        e.preventDefault();
-        // In a real implementation we would update ghost position here
-    };
+        setDraggingTask({ id: task.id, yOffset, dateIdx });
 
-    const handleDrop = (e: React.MouseEvent, dateIdx: number) => {
-        if (!draggingTask) return;
-        const colRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-        const y = e.clientY - colRect.top - draggingTask.yOffset;
+        const top = timeToPixels(task.dueTime);
+        const height = (task.duration ? (task.duration / 60) : 1) * HOUR_HEIGHT;
+        setDragGhostPos({ top, height, colIdx: dateIdx });
 
-        const newTime = pixelsToTime(y);
-        const newDateStr = formatDateStr(visibleDates[dateIdx]);
+        // Add document-level event listeners for smooth dragging outside of the immediate element
+        const handleMouseMove = (moveEvent: MouseEvent) => {
+             // We need to find the column we are currently hovering over
+             const gridBody = scrollContainerRef.current;
+             if (!gridBody) return;
 
-        const task = tasks.find(t => t.id === draggingTask.id);
-        if (task) {
-            updateTask({ ...task, dueTime: newTime, dueDate: newDateStr });
-        }
-        setDraggingTask(null);
+             const bodyRect = gridBody.getBoundingClientRect();
+             // Adjust mouse Y to be relative to the scroll container's content
+             const yInsideBody = moveEvent.clientY - bodyRect.top + gridBody.scrollTop;
+             const rawTop = yInsideBody - yOffset;
+
+             // Snap top to nearest 15 mins (which is HOUR_HEIGHT / 4)
+             const snapInterval = HOUR_HEIGHT / 4;
+             const snappedTop = Math.max(0, Math.round(rawTop / snapInterval) * snapInterval);
+
+             // Find which column we are in
+             const cols = gridBody.querySelectorAll('.cal-day-col');
+             let hoveredColIdx = dateIdx; // Default to original column
+             cols.forEach((col, idx) => {
+                 const colRect = col.getBoundingClientRect();
+                 if (moveEvent.clientX >= colRect.left && moveEvent.clientX <= colRect.right) {
+                     hoveredColIdx = idx;
+                 }
+             });
+
+             setDragGhostPos({ top: snappedTop, height, colIdx: hoveredColIdx });
+        };
+
+        const handleMouseUp = (upEvent: MouseEvent) => {
+             window.removeEventListener('mousemove', handleMouseMove);
+             window.removeEventListener('mouseup', handleMouseUp);
+
+             setDragGhostPos(prevGhost => {
+                 if (prevGhost) {
+                     const newTime = pixelsToTime(prevGhost.top);
+                     const newDateStr = formatDateStr(visibleDates[prevGhost.colIdx]);
+
+                     const currentTask = tasks.find(t => t.id === task.id);
+                     if (currentTask) {
+                         updateTask({ ...currentTask, dueTime: newTime, dueDate: newDateStr });
+                     }
+                 }
+                 setDraggingTask(null);
+                 return null;
+             });
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
     };
 
     const handleSmartInputSubmit = (commands: ParsedCommand[]) => {
@@ -194,13 +234,11 @@ export default function CalendarView() {
                                    <div
                                        key={colIdx}
                                        className="cal-day-col"
-                                       onDragOver={(e) => handleDragOver(e, colIdx)}
-                                       onDrop={(e) => handleDrop(e, colIdx)}
-                                       onMouseUp={(e) => {
-                                            if (draggingTask) handleDrop(e, colIdx);
-                                       }}
                                    >
+                                       {/* Render actual events unless they are currently being dragged */}
                                        {dayTasks.map(task => {
+                                           if (draggingTask?.id === task.id) return null; // Don't render the static version if dragging
+
                                            const top = timeToPixels(task.dueTime!);
                                            // Default duration 60 mins if none specified
                                            const height = (task.duration ? (task.duration / 60) : 1) * HOUR_HEIGHT;
@@ -218,6 +256,23 @@ export default function CalendarView() {
                                                </div>
                                            );
                                        })}
+
+                                       {/* Render ghost event if dragging in this column */}
+                                       {draggingTask && dragGhostPos && dragGhostPos.colIdx === colIdx && (() => {
+                                            const ghostTask = tasks.find(t => t.id === draggingTask.id);
+                                            if (!ghostTask) return null;
+                                            return (
+                                                <div
+                                                     className="cal-event cal-event--ghost"
+                                                     style={{ top: `${dragGhostPos.top}px`, height: `${dragGhostPos.height}px` }}
+                                                >
+                                                     <div className="cal-event-title">{ghostTask.title}</div>
+                                                     <div className="cal-event-time">
+                                                          {pixelsToTime(dragGhostPos.top)} {ghostTask.duration ? `(${ghostTask.duration}m)` : ''}
+                                                     </div>
+                                                </div>
+                                            );
+                                       })()}
                                    </div>
                                );
                            })}
