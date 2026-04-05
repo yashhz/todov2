@@ -40,9 +40,10 @@ export interface Task {
 }
 
 // ─── Goal ────────────────────────────────────────
-// 'measurable' — has a numeric target, accepts direct contributions from tasks/habits
-// 'outcome'    — aggregator only; progress derived from child goals or linked projects
-export type GoalType = 'measurable' | 'outcome' | 'directional' | 'milestone';
+// 'measurable' — explicit numeric targets (e.g., 1000 pushups), gets progress bar
+// 'milestone'  — finishable outcomes (e.g., "Get a Six Pack"), driven by completion fraction of linked tasks/sub-goals
+// 'continuous' — ongoing direction (e.g., "Eat Healthy"), no progress bar, driven by habits
+export type GoalType = 'measurable' | 'milestone' | 'continuous';
 
 export interface ProgressEntry {
   id: string;
