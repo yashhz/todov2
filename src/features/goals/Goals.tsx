@@ -393,7 +393,14 @@ export default function GoalsPage() {
                                         </button>
                                     </>
                                 }
-                                onClick={() => navigate(`/goals/${goal.id}`)}
+                                onClick={() => {
+                                    // Only navigate to detail view for measurable/milestone goals
+                                    // Continuous goals are tracked purely via habits, so they don't need a complex breakdown page.
+                                    if (goal.goalType !== 'continuous') {
+                                        navigate(`/goals/${goal.id}`);
+                                    }
+                                }}
+                                className={goal.goalType === 'continuous' ? 'card--no-hover' : ''}
                             >
                                 {goal.goalType === 'measurable' && goal.targetValue !== null && (
                                     <ProgressBar

@@ -80,13 +80,17 @@
   z-index: 1;
 }
 
-.card:hover {
+.card:hover:not(.card--no-hover) {
   transform: translateY(-2px);
   border-color: rgba(255, 255, 255, 0.12);
 }
 
-.card--with-border-segments:hover {
+.card--with-border-segments:hover:not(.card--no-hover) {
   border-color: transparent;
+}
+
+.card.card--no-hover {
+  cursor: default;
 }
 
 .card__body {
