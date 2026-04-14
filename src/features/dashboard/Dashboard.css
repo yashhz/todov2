@@ -876,11 +876,13 @@
     border: 1px solid var(--surface-border);
     border-radius: var(--radius-md);
     padding: var(--sp-3) var(--sp-4);
-    transition: border-color var(--duration-fast);
+    transition: all var(--duration-fast);
 }
 
 .progress-logger__input-wrap:focus-within {
     border-color: var(--surface-border-hover);
+    box-shadow: var(--shadow-sm);
+    background: var(--surface-glass-active);
 }
 
 .progress-logger__input {

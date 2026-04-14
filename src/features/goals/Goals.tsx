@@ -2,11 +2,13 @@
    GOALS PAGE — Unified card design with flattened structure
    ═══════════════════════════════════════════════════════════ */
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useGoals } from '../../hooks/useStore';
 import { useKeyboardShortcut } from '../../hooks/useKeyboardShortcut';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { GoalType } from '../../types';
+import { SmartFilter } from '../../components/SmartFilter';
+import type { FilterGroupConfig } from '../../components/SmartFilter';
 import { Card } from '../../components/Card';
 import { getLucideIcon } from '../../utils/iconMapping';
 import ProgressBar from '../../components/ProgressBar';
@@ -84,18 +86,7 @@ export default function GoalsPage() {
     const [filterType, setFilterType] = useState<'all' | GoalType>('all');
 
     useKeyboardShortcut('n', () => { resetForm(); setShowForm(true); });
-    const [showFilters, setShowFilters] = useState<'status' | 'type' | null>(null);
-    const filterRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
-                setShowFilters(null);
-            }
-        }
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    const [showFilters, setShowFilters] = useState<string | null>(null);
 
     // Form state
     const [formTitle, setFormTitle] = useState('');
@@ -202,6 +193,32 @@ export default function GoalsPage() {
         }
     }
 
+    const filterGroups: FilterGroupConfig[] = [
+        {
+            id: 'status',
+            type: 'single',
+            selected: filterStatus,
+            onSelect: (v) => setFilterStatus(v as 'all' | 'active' | 'completed'),
+            getTriggerLabel: (v) => v as string,
+            suffixText: ' goals of ',
+            options: (['all', 'active', 'completed'] as const).map(s => ({
+                id: s,
+                label: s.charAt(0).toUpperCase() + s.slice(1)
+            }))
+        },
+        {
+            id: 'type',
+            type: 'single',
+            selected: filterType,
+            onSelect: (v) => setFilterType(v as 'all' | GoalType),
+            getTriggerLabel: (v) => v === 'all' ? 'any type' : v as string,
+            options: (['all', 'measurable', 'milestone', 'continuous'] as const).map(t => ({
+                id: t,
+                label: t === 'all' ? 'Any type' : t.charAt(0).toUpperCase() + t.slice(1)
+            }))
+        }
+    ];
+
     return (
         <div className="goals-page page-enter">
             {/* Header */}
@@ -215,58 +232,18 @@ export default function GoalsPage() {
                 </button>
             </div>
 
-            {/* Smart Sentence Filter */}
-            <div className="tasks-filter-sentence" ref={filterRef} style={{ marginBottom: 'var(--sp-4)' }}>
-                <span className="sentence-text">Showing </span>
-                
-                {/* Status Trigger */}
-                <span className="sentence-trigger-wrap">
-                    <button 
-                        className={`sentence-trigger ${filterStatus !== 'all' ? 'sentence-trigger--active' : ''}`}
-                        onClick={() => setShowFilters(showFilters === 'status' ? null : 'status')}
-                    >
-                        {filterStatus === 'all' ? 'all' : filterStatus}
-                    </button>
-                    {showFilters === 'status' && (
-                        <div className="sentence-mini-popover glass animate-pop-in">
-                            {(['all', 'active', 'completed'] as const).map(s => (
-                                <button key={s} className={`mini-opt ${filterStatus === s ? 'mini-opt--active' : ''}`} onClick={() => { setFilterStatus(s); setShowFilters(null); }}>
-                                    {s.charAt(0).toUpperCase() + s.slice(1)}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </span>
-
-                <span className="sentence-text"> goals of </span>
-
-                {/* Type Trigger */}
-                <span className="sentence-trigger-wrap">
-                    <button 
-                        className={`sentence-trigger ${filterType !== 'all' ? 'sentence-trigger--active' : ''}`}
-                        onClick={() => setShowFilters(showFilters === 'type' ? null : 'type')}
-                    >
-                        {filterType === 'all' ? 'any type' : filterType}
-                    </button>
-                    {showFilters === 'type' && (
-                        <div className="sentence-mini-popover glass animate-pop-in">
-                            {(['all', 'measurable', 'milestone', 'continuous'] as const).map(t => (
-                                <button key={t} className={`mini-opt ${filterType === t ? 'mini-opt--active' : ''}`} onClick={() => { setFilterType(t); setShowFilters(null); }}>
-                                    {t === 'all' ? 'Any type' : t.charAt(0).toUpperCase() + t.slice(1)}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </span>
-
-                {((filterStatus !== 'all' ? 1 : 0) + (filterType !== 'all' ? 1 : 0)) > 0 && (
-                    <button className="sentence-clear" onClick={() => {
-                        setFilterStatus('all');
-                        setFilterType('all');
-                        setShowFilters(null);
-                    }} title="Reset Filters">×</button>
-                )}
-            </div>
+            <SmartFilter
+                style={{ marginBottom: 'var(--sp-4)' }}
+                groups={filterGroups}
+                activeGroup={showFilters}
+                onToggleGroup={setShowFilters}
+                showClearAll={((filterStatus !== 'all' ? 1 : 0) + (filterType !== 'all' ? 1 : 0)) > 0}
+                onClearAll={() => {
+                    setFilterStatus('all');
+                    setFilterType('all');
+                    setShowFilters(null);
+                }}
+            />
 
             {/* Goals List — Flattened Structure */}
             <div className="goals-list stagger-children">
@@ -457,7 +434,7 @@ export default function GoalsPage() {
 
                         <div className="m-form__section">
                             <span className="m-form__section-label">Identity</span>
-                            <div className="m-form__row" style={{background: 'rgba(255,255,255,0.03)', padding: '6px', borderRadius: '24px', overflowX: 'auto', flexWrap: 'nowrap', maxWidth: '100%', WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none'}}>
+                            <div className="m-form__row m-form__row--scrollable" style={{background: 'rgba(255,255,255,0.03)', padding: '6px', borderRadius: '24px', maxWidth: '100%'}}>
                                 {GOAL_ICONS.map(icon => (
                                     <button
                                         key={icon}
@@ -474,7 +451,7 @@ export default function GoalsPage() {
                                     </button>
                                 ))}
                             </div>
-                            <div className="m-form__row" style={{background: 'rgba(255,255,255,0.03)', padding: '8px', borderRadius: '24px', overflowX: 'auto', flexWrap: 'nowrap', maxWidth: '100%', gap: '12px', marginTop: '4px'}}>
+                            <div className="m-form__row m-form__row--scrollable" style={{background: 'rgba(255,255,255,0.03)', padding: '8px', borderRadius: '24px', maxWidth: '100%', gap: '12px', marginTop: '4px'}}>
                                 {GOAL_COLORS.map(color => (
                                     <button
                                         key={color}

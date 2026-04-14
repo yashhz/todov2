@@ -520,6 +520,18 @@ a:hover {
     flex-wrap: wrap;
 }
 
+.m-form__row--scrollable {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    WebkitOverflowScrolling: touch;
+    padding-bottom: 2px;
+}
+.m-form__row--scrollable::-webkit-scrollbar {
+    display: none;
+}
+
 .m-form__pill {
     padding: 7px 16px;
     background: rgba(255, 255, 255, 0.04);
