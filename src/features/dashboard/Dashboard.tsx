@@ -334,6 +334,14 @@ export default function Dashboard() {
         return scored[0];
     }, [parentGoals, tasks, todayStr, prefs.pinnedGoalId]);
 
+    const anchorLinkedTasks = useMemo(() => {
+        if (!anchorGoal) return [];
+        return tasks.filter(t =>
+            t.goalLinks?.some(l => l.goalId === anchorGoal.goal.id) ||
+            t.linkedGoalId === anchorGoal.goal.id
+        );
+    }, [tasks, anchorGoal]);
+
     // Project lookup for task color bars
     function getProjectColor(task: Task): string {
         if (task.projectId) {
@@ -536,8 +544,7 @@ export default function Dashboard() {
                     {isVisible('linked') && anchorGoal && (
                         <div className="d-sidebar-block">
                             <p className="d-sidebar-label">Linked to anchor</p>
-                            {tasks
-                                .filter(t => t.goalLinks?.some(l => l.goalId === anchorGoal.goal.id) || t.linkedGoalId === anchorGoal.goal.id)
+                            {anchorLinkedTasks
                                 .slice(0, 10)
                                 .map(t => (
                                     <div key={t.id} className={`d-linked-task ${t.completed ? 'd-linked-task--done' : ''}`} onClick={() => toggleTask(t.id)}>
@@ -545,7 +552,7 @@ export default function Dashboard() {
                                         <span className="d-linked-task__title">{t.title}</span>
                                     </div>
                                 ))}
-                            {tasks.filter(t => t.goalLinks?.some(l => l.goalId === anchorGoal.goal.id) || t.linkedGoalId === anchorGoal.goal.id).length === 0 && (
+                            {anchorLinkedTasks.length === 0 && (
                                 <p className="d-empty" style={{ fontSize: '12px' }}>No tasks linked.</p>
                             )}
                         </div>
