@@ -3,6 +3,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
+import { v4 as uuid } from 'uuid';
 import type { AppState, AppAction, UserPreferences } from '../types';
 import { loadState, saveState } from '../services/storage';
 import { calculateStreak } from '../services/recurrence';
@@ -103,7 +104,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
             // Block corrections to milestone/continuous goals
             if (!correctionTarget || correctionTarget.goalType !== 'measurable') return state;
             const correctionEntry = {
-                id: Math.random().toString(36).slice(2),
+                id: uuid(),
                 date: new Date().toISOString(),
                 value: delta,
                 note: note || 'Manual correction',
