@@ -58,4 +58,4 @@ Planify doesn't shout for attention with bright colors or cluttered menus. Its d
 
 ---
 
-*Note: While inconsistencies exist (some parts are still moving from "Hyper-Aesthetic Glass" to "Functional Card" systems), the major direction remains: **A premium, dark, keyboard-centric workspace that visualizes personal growth.***
+*Note: The application has been unified around the "Premium Digital Glass" system. The major direction remains: **A premium, dark, keyboard-centric workspace that visualizes personal growth.***

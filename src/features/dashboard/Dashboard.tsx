@@ -63,39 +63,6 @@ function ArcProgress({ progress, color, size = 72 }: { progress: number; color: 
     );
 }
 
-// ─── Task row — lean, minimal ──────────────────────
-
-function TaskRow({ task, projectColor, onToggle }: { task: Task; projectColor: string; onToggle: () => void }) {
-    return (
-        <div className={`d-task-row ${task.completed ? 'd-task-row--done' : ''}`} onClick={onToggle}>
-            <div className={`d-task-check ${task.completed ? 'd-task-check--done' : ''}`}>
-                {task.completed && (
-                    <svg width="8" height="7" viewBox="0 0 8 7" fill="none">
-                        <path d="M1 3.5L3 5.5L7 1" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                )}
-            </div>
-
-            <div className="d-task-body">
-                <div className="d-task-main">
-                    <div className="d-task-bar" style={{ background: projectColor }} />
-                    <span className="d-task-title">{task.title}</span>
-                    {task.priority === 'high' && !task.completed && (
-                        <span className="d-task-high">high</span>
-                    )}
-                    {task.dueTime && !task.completed && (
-                        <span className="d-task-time">{formatTime12(task.dueTime)}</span>
-                    )}
-                </div>
-                {task.tags && task.tags.length > 0 && (
-                    <div className="d-task-tags">
-                        {task.tags.map(t => <span key={t} className="d-task-tag">#{t}</span>)}
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-}
 
 // ─── Today Timeline ────────────────────────────────
 function TimelineRow({ task, projectColor, onToggle }: { task: Task; projectColor: string; onToggle: () => void }) {
@@ -291,7 +258,6 @@ export default function Dashboard() {
 
     // Data Filtering - Optimized useMemo
     const allTodayTasks  = useMemo(() => tasks.filter(t => t.dueDate === todayStr), [tasks, todayStr]);
-    const pendingTasks   = useMemo(() => allTodayTasks.filter(t => !t.completed), [allTodayTasks]);
     const completedTasks = useMemo(() => allTodayTasks.filter(t => t.completed), [allTodayTasks]);
     const overdueTasks   = useMemo(() => tasks.filter(t => t.dueDate && t.dueDate < todayStr && !t.completed), [tasks, todayStr]);
     const todayHabits    = useMemo(() => habits.filter(h => isHabitDueOnDate(h, todayState)), [habits, todayState]);

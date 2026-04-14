@@ -21,15 +21,17 @@ This is the "Brain" of the app.
 - Every task can be assigned a `contributionValue`. When completed, the system triggers a background logic that updates the `currentValue` of the linked Goal.
 
 ### 2. Hierarchical Goals
-We support two types of goals:
-- **Target Goals**: Specific metrics (e.g., "Save $10,000" or "Read 50 Books").
-- **Umbrella Goals**: These act as containers. They don't have their own progress but instead aggregate the average progress of all their "Sub-Goals." 
+We support multiple types of goals:
+- **Measurable Goals**: Explicit numeric targets (e.g., "1000 Pushups"), tracked with a progress bar.
+- **Milestone Goals**: Finishable outcomes (e.g., "Get a Six Pack"), driven by the completion fraction of linked tasks and sub-goals.
+- **Continuous Goals**: Ongoing directions (e.g., "Eat Healthy"), lacking a strict target, usually driven by habits.
+- **Outcome & Directional Goals**: Act as aggregators and thematic containers for other tracking items.
 
-### 3. Habit Neural-Grid
-The habit system uses a flexible recurrence engine. It tracks streaks and "best streaks" to gamify consistency. It doesn't just ask *if* you did it, but *when* you are most consistent.
+### 3. Habit Neural-Grid & Daily Routines
+The habit system uses a flexible recurrence engine. It tracks streaks and visualizes energy ratings to gamify consistency. It allows inline logging for connected goals directly from the Habit card.
 
-### 4. Smart Task Management
-Includes a custom-built **TimePicker** and a **Hashtag Autocomplete** system. Typing `#` in a task description instantly connects it to your global tagging system, allowing for cross-modular data filtering.
+### 4. Smart Input & Command Bar
+Features a powerful natural language `SmartInput` system and a global "Command Bar". Typing commands (like `"Review presentation tomorrow 10am !high"`) parses automatically into dates, priorities, tags, and linked goals. We also use standardized `SmartFilter` components across modules for intelligent data querying.
 
 ---
 
@@ -37,7 +39,7 @@ Includes a custom-built **TimePicker** and a **Hashtag Autocomplete** system. Ty
 The app uses a **Premium Glassmorphic Aesthetic**. 
 - **Aesthetics**: High-contrast dark mode, vibrant gradients, and blurred translucent surfaces (using `backdrop-filter`).
 - **Typography**: Uses **Satoshi** and **Cabinet Grotesk** to evoke a high-end, editorial feel.
-- **UX**: A "Fixed Viewport" approach. The sidebar and header stay locked while content scrolls independently, making it feel like a professional desktop application rather than a simple web page.
+- **UX**: A "Fixed Viewport" approach. The sidebar (featuring unified `lucide-react` icons) and headers stay locked while content scrolls independently, making it feel like a professional desktop application. Modal forms are streamlined with horizontally scrollable pill-selections.
 - **Micro-Animations**: Uses CSS spring transitions and `framer-motion` style logic to ensure every interaction (opening a modal, toggling a checkbox) feels tactile and "alive."
 
 ---

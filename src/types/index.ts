@@ -43,7 +43,7 @@ export interface Task {
 // 'measurable' — explicit numeric targets (e.g., 1000 pushups), gets progress bar
 // 'milestone'  — finishable outcomes (e.g., "Get a Six Pack"), driven by completion fraction of linked tasks/sub-goals
 // 'continuous' — ongoing direction (e.g., "Eat Healthy"), no progress bar, driven by habits
-export type GoalType = 'measurable' | 'milestone' | 'continuous';
+export type GoalType = 'measurable' | 'milestone' | 'continuous' | 'outcome' | 'directional';
 
 export interface ProgressEntry {
   id: string;

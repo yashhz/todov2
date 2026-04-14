@@ -5,6 +5,8 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useHabits, useProjects, useGoals } from '../../hooks/useStore';
 import { useKeyboardShortcut } from '../../hooks/useKeyboardShortcut';
+import { SmartFilter } from '../../components/SmartFilter';
+import type { FilterGroupConfig } from '../../components/SmartFilter';
 
 import type { HabitFrequency, EnergyRating, GoalLink, Habit } from '../../types';
 import {
@@ -199,23 +201,10 @@ export default function HabitsPage() {
     const [showForm, setShowForm]   = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [activeTab, setActiveTab] = useState<TabType>('all');
-    const [showFilters, setShowFilters] = useState<'frequency' | null>(null);
-    const filterRef = useRef<HTMLDivElement>(null);
+    const [showFilters, setShowFilters] = useState<string | null>(null);
     const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
 
     useKeyboardShortcut('n', () => { resetForm(); setShowForm(true); });
-
-    useEffect(() => {
-        function handleClickOutside(e: MouseEvent) {
-            if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
-                setShowFilters(null);
-            }
-        }
-        if (showFilters) {
-            document.addEventListener('mousedown', handleClickOutside);
-        }
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [showFilters]);
 
     const selectedDateStr = formatDateStr(selectedDate);
     const isTodaySelected = selectedDateStr === getTodayStr();
@@ -323,6 +312,25 @@ export default function HabitsPage() {
     }, [habits, activeTab]);
 
 
+    const filterGroups: FilterGroupConfig[] = [
+        {
+            id: 'frequency',
+            type: 'single',
+            selected: activeTab,
+            onSelect: (v) => setActiveTab(v as TabType),
+            getTriggerLabel: (v) => {
+                const s = v as string;
+                if (s === 'all') return 'all';
+                if (s === 'other') return 'monthly & custom';
+                return s;
+            },
+            suffixText: ' habits',
+            options: (['all', 'daily', 'weekly', 'other'] as const).map(t => ({
+                id: t,
+                label: t === 'all' ? 'All habits' : t === 'other' ? 'Monthly & custom' : t.charAt(0).toUpperCase() + t.slice(1)
+            }))
+        }
+    ];
 
     return (
         <div className="habits-page page-enter">
@@ -353,35 +361,17 @@ export default function HabitsPage() {
                 <DateNavigator selectedDate={selectedDate} onDateChange={setSelectedDate} habits={habits} />
             </div>
 
-            {/* Smart Sentence Filter */}
-            <div className="tasks-filter-sentence" ref={filterRef} style={{ marginBottom: 'var(--sp-4)' }}>
-                <span className="sentence-text">Showing </span>
-                <span className="sentence-trigger-wrap">
-                    <button 
-                        className={`sentence-trigger ${activeTab !== 'all' ? 'sentence-trigger--active' : ''}`}
-                        onClick={() => setShowFilters(showFilters === 'frequency' ? null : 'frequency')}
-                    >
-                        {activeTab === 'all' ? 'all' : activeTab === 'other' ? 'monthly & custom' : activeTab}
-                    </button>
-                    {showFilters === 'frequency' && (
-                        <div className="sentence-mini-popover glass animate-pop-in">
-                            {(['all', 'daily', 'weekly', 'other'] as const).map(t => (
-                                <button key={t} className={`mini-opt ${activeTab === t ? 'mini-opt--active' : ''}`} onClick={() => { setActiveTab(t); setShowFilters(null); }}>
-                                    {t === 'all' ? 'All habits' : t === 'other' ? 'Monthly & custom' : t.charAt(0).toUpperCase() + t.slice(1)}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </span>
-                <span className="sentence-text"> habits</span>
-
-                {activeTab !== 'all' && (
-                    <button className="sentence-clear" onClick={() => {
-                        setActiveTab('all');
-                        setShowFilters(null);
-                    }} title="Reset Filters">×</button>
-                )}
-            </div>
+            <SmartFilter
+                style={{ marginBottom: 'var(--sp-4)' }}
+                groups={filterGroups}
+                activeGroup={showFilters}
+                onToggleGroup={setShowFilters}
+                showClearAll={activeTab !== 'all'}
+                onClearAll={() => {
+                    setActiveTab('all');
+                    setShowFilters(null);
+                }}
+            />
 
             {/* ─── Habit Grid ─────────────────────────── */}
             <div className="habits-grid">
@@ -573,7 +563,7 @@ export default function HabitsPage() {
 
                         <div className="m-form__section">
                             <span className="m-form__section-label">Identity</span>
-                            <div className="m-form__row" style={{background: 'rgba(255,255,255,0.03)', padding: '6px', borderRadius: '24px', overflowX: 'auto', flexWrap: 'nowrap', maxWidth: '100%', WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none'}}>
+                            <div className="m-form__row m-form__row--scrollable" style={{background: 'rgba(255,255,255,0.03)', padding: '6px', borderRadius: '24px', maxWidth: '100%'}}>
                                 {HABIT_ICONS.map(icon => (
                                     <button
                                         key={icon}
@@ -590,7 +580,7 @@ export default function HabitsPage() {
                                     </button>
                                 ))}
                             </div>
-                            <div className="m-form__row" style={{background: 'rgba(255,255,255,0.03)', padding: '8px', borderRadius: '24px', overflowX: 'auto', flexWrap: 'nowrap', maxWidth: '100%', gap: '12px', marginTop: '4px'}}>
+                            <div className="m-form__row m-form__row--scrollable" style={{background: 'rgba(255,255,255,0.03)', padding: '8px', borderRadius: '24px', maxWidth: '100%', gap: '12px', marginTop: '4px'}}>
                                 {HABIT_COLORS.map(color => (
                                     <button
                                         key={color}

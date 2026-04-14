@@ -3,7 +3,7 @@ import { useTasks } from '../../hooks/useStore';
 import { formatDateStr } from '../../services/recurrence';
 import { SmartInput } from '../../components/SmartInput';
 import type { Task, ParsedCommand } from '../../types';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import './Calendar.css';
 
 // Helpers
@@ -128,7 +128,7 @@ export default function CalendarView() {
              setDragGhostPos({ top: snappedTop, height, colIdx: hoveredColIdx });
         };
 
-        const handleMouseUp = (upEvent: MouseEvent) => {
+        const handleMouseUp = () => {
              window.removeEventListener('mousemove', handleMouseMove);
              window.removeEventListener('mouseup', handleMouseUp);
 
