@@ -311,7 +311,6 @@ export default function TasksPage() {
     const [selectedFilterTags, setSelectedFilterTags] = useState<string[]>([]);
     const [showFilters, setShowFilters] = useState<string | null>(null);
 
-    useKeyboardShortcut('n', () => { resetForm(); setShowForm(true); });
     const [showForm, setShowForm] = useState(false);
     const [editingTask, setEditingTask] = useState<Task | null>(null);
     const [animatingTaskIds, setAnimatingTaskIds] = useState<Set<string>>(new Set());
@@ -470,7 +469,7 @@ export default function TasksPage() {
         }
     ];
 
-    function resetForm() {
+    const resetForm = useCallback(() => {
         setFormTitle('');
         setFormDesc('');
         setFormDate('');
@@ -487,7 +486,9 @@ export default function TasksPage() {
         setProjectSearch('');
         setShowProjectSearch(false);
         setEditingTask(null);
-    }
+    }, [setFormTitle, setFormDesc, setFormDate, setFormTime, setFormPriority, setFormProjectId, setFormTags, setFormSubtasks, setFormGoalLinks, setFormDuration, setShowCalendar, setGoalSearch, setShowGoalSearch, setProjectSearch, setShowProjectSearch, setEditingTask]);
+
+    useKeyboardShortcut('n', () => { resetForm(); setShowForm(true); });
 
     function openNew() {
         resetForm();

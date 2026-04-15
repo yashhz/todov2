@@ -63,7 +63,6 @@ export default function ProjectsPage() {
     const [statusFilter, setStatusFilter] = useState<ProjectStatus | 'all'>('active');
     const [selectedFilterGoals, setSelectedFilterGoals] = useState<string[]>([]);
 
-    useKeyboardShortcut('n', () => { resetForm(); setShowForm(true); });
     const [showFilters, setShowFilters] = useState<string | null>(null);
 
     // Form state
@@ -75,11 +74,13 @@ export default function ProjectsPage() {
     const [formGoalId, setFormGoalId] = useState<string | null>(null);
     const [nameShake, setNameShake] = useState(false);
 
-    function resetForm() {
+    const resetForm = useCallback(() => {
         setFormName(''); setFormColor(PROJECT_COLORS[0]); setFormIcon(PROJECT_ICON_IDS[0]);
         setFormDesc(''); setFormStatus('active'); setFormGoalId(null);
         setEditingProject(null);
-    }
+    }, [setFormName, setFormColor, setFormIcon, setFormDesc, setFormStatus, setFormGoalId, setEditingProject]);
+
+    useKeyboardShortcut('n', () => { resetForm(); setShowForm(true); });
 
     function openNew() { resetForm(); setShowForm(true); }
 

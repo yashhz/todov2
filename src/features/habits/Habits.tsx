@@ -204,8 +204,6 @@ export default function HabitsPage() {
     const [showFilters, setShowFilters] = useState<string | null>(null);
     const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
 
-    useKeyboardShortcut('n', () => { resetForm(); setShowForm(true); });
-
     const selectedDateStr = formatDateStr(selectedDate);
     const isTodaySelected = selectedDateStr === getTodayStr();
 
@@ -225,7 +223,7 @@ export default function HabitsPage() {
     const [showProjectSearch, setShowProjectSearch] = useState(false);
     const [titleShake, setTitleShake]             = useState(false);
 
-    function resetForm() {
+    const resetForm = useCallback(() => {
         setFormTitle(''); setFormDesc('');
         setFormIcon(HABIT_ICONS[0]); setFormColor(HABIT_COLORS[0]);
         setFormFreq('daily'); setFormDays([]);
@@ -234,7 +232,9 @@ export default function HabitsPage() {
         setShowTimePicker(false);
         setProjectSearch(''); setShowProjectSearch(false);
         setEditingHabit(null);
-    }
+    }, [setFormTitle, setFormDesc, setFormIcon, setFormColor, setFormFreq, setFormDays, setFormEveryN, setFormTimesPerWeek, setFormTime, setFormProjectId, setFormGoalLinks, setShowTimePicker, setProjectSearch, setShowProjectSearch, setEditingHabit]);
+
+    useKeyboardShortcut('n', () => { resetForm(); setShowForm(true); });
 
     function openEdit(habit: Habit) {
         setEditingHabit(habit);
