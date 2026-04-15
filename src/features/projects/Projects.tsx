@@ -265,7 +265,6 @@ export default function ProjectsPage() {
                                             className="card__action-btn" 
                                             onClick={(e) => { e.stopPropagation(); openEdit(project); }}
                                             title="Edit Project"
-                                            aria-label="Edit Project"
                                         >
                                             <Edit size={14} />
                                         </button>
@@ -273,7 +272,6 @@ export default function ProjectsPage() {
                                             className="card__action-btn card__action-btn--danger" 
                                             onClick={(e) => { e.stopPropagation(); setDeleteConfirm(project.id); }}
                                             title="Delete Project"
-                                            aria-label="Delete Project"
                                         >
                                             <Trash2 size={14} />
                                         </button>
