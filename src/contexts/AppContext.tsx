@@ -236,20 +236,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
             return { ...state, timeBlocks: [...(state.timeBlocks || []), ...carried] };
         }
 
-        // ── Intentions ─────────────────────────────────
-        case 'SET_INTENTION': {
-            const existing = (state.intentions || []).find(i => i.date === action.payload.date);
-            if (existing) {
-                return {
-                    ...state,
-                    intentions: (state.intentions || []).map(i =>
-                        i.date === action.payload.date ? action.payload : i
-                    ),
-                };
-            }
-            return { ...state, intentions: [...(state.intentions || []), action.payload] };
-        }
-
         // ── Bulk ───────────────────────────────────────
         case 'LOAD_STATE':
             return action.payload;

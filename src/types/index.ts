@@ -131,12 +131,6 @@ export interface TimeBlock {
   skipped: boolean;
 }
 
-// ─── Daily Intention ─────────────────────────────
-export interface DailyIntention {
-  date: string;             // YYYY-MM-DD
-  text: string;
-}
-
 // ─── Command Bar — Parser Output ─────────────────
 export type CommandType = 'task' | 'habit' | 'goal';
 export type ParsedPriority = 'low' | 'medium' | 'high' | 'urgent';
@@ -186,7 +180,6 @@ export interface AppState {
   tags: { id: string; name: string; color: string }[];                      // legacy — kept for migration
   projects: Project[];
   timeBlocks: TimeBlock[];
-  intentions: DailyIntention[];
   preferences?: UserPreferences;
 }
 
@@ -229,7 +222,5 @@ export type AppAction =
   | { type: 'DELETE_TIMEBLOCK'; payload: string }
   | { type: 'TOGGLE_TIMEBLOCK'; payload: string }
   | { type: 'CARRYFORWARD_BLOCKS'; payload: { fromDate: string; toDate: string } }
-  // Intentions
-  | { type: 'SET_INTENTION'; payload: DailyIntention }
   // Bulk
   | { type: 'LOAD_STATE'; payload: AppState };
