@@ -25,7 +25,7 @@ import {
   Trash2,
 } from 'lucide-react';
 
-export const ICON_MAP: Record<string, any> = {
+const _ICON_MAP: Record<string, any> = {
   '🎯': Target,
   '💪': Dumbbell,
   '📊': BarChart3,
@@ -63,5 +63,5 @@ export const ICON_MAP: Record<string, any> = {
 };
 
 export const getLucideIcon = (emoji: string) => {
-  return ICON_MAP[emoji] || Circle;
+  return _ICON_MAP[emoji] || Circle;
 };

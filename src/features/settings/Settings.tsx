@@ -1,12 +1,23 @@
 import { useState } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { clearState } from '../../services/storage';
+import { useGoogleLogin } from '@react-oauth/google';
+import { setGCalToken, clearGCalToken, hasGCalToken } from '../../services/googleCalendar';
 import './Settings.css';
 
 export default function Settings() {
     const { state, dispatch } = useAppContext();
     const [userName, setUserName] = useState(state.preferences?.userName || 'User');
     const [isSaving, setIsSaving] = useState(false);
+
+    const login = useGoogleLogin({
+        onSuccess: tokenResponse => {
+            setGCalToken(tokenResponse.access_token);
+            // force re-render
+            setUserName(u => u);
+        },
+        scope: 'https://www.googleapis.com/auth/calendar.events',
+    });
 
     const handleSaveProfile = (e: React.FormEvent) => {
         e.preventDefault();
@@ -97,6 +108,30 @@ export default function Settings() {
                         <div className="stat-card">
                             <span className="stat-value">{bestStreak}</span>
                             <span className="stat-label">Best Streak</span>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Integrations */}
+                <section className="settings-section glass">
+                    <h2 className="section-title">Integrations</h2>
+                    <p className="section-desc">Connect external services to sync your data.</p>
+
+                    <div className="settings-actions">
+                        <div className="action-row">
+                            <div className="action-info">
+                                <h3>Google Calendar</h3>
+                                <p>Two-way sync with your Google Calendar.</p>
+                            </div>
+                            {hasGCalToken() ? (
+                                <button className="btn btn-secondary" onClick={() => {
+                                    clearGCalToken();
+                                    // force re-render
+                                    setUserName(u => u);
+                                }}>Disconnect</button>
+                            ) : (
+                                <button className="btn btn-primary" onClick={() => login()}>Connect Google Calendar</button>
+                            )}
                         </div>
                     </div>
                 </section>

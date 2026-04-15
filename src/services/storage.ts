@@ -23,7 +23,6 @@ const DEFAULT_STATE: AppState = {
     tags: [],
     projects: DEFAULT_PROJECTS,
     timeBlocks: [],
-    intentions: [],
     preferences: {
         userName: 'User',
         pinnedGoalId: null,
@@ -45,7 +44,6 @@ function migrateState(raw: Record<string, unknown>): AppState {
         tags:       Array.isArray(raw.tags)       ? raw.tags       : [],
         projects:   Array.isArray(raw.projects)   ? raw.projects   : [],
         timeBlocks: Array.isArray(raw.timeBlocks) ? raw.timeBlocks : [],
-        intentions: Array.isArray(raw.intentions) ? raw.intentions : [],
         preferences: {
             ...DEFAULT_STATE.preferences,
             ...(raw.preferences as Record<string, unknown> || {}),
@@ -118,7 +116,6 @@ function migrateState(raw: Record<string, unknown>): AppState {
 
     // Ensure new top-level arrays exist
     if (!base.timeBlocks) base.timeBlocks = [];
-    if (!base.intentions) base.intentions = [];
     if (!base.categories) base.categories = [];
     if (!base.tags) base.tags = [];
 

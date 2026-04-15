@@ -46,7 +46,7 @@ export function isHabitCompletedOnDate(habit: Habit, dateStr: string): boolean {
 /**
  * Calculate how many times a habit has been completed this week
  */
-export function getWeeklyCompletionCount(habit: Habit, referenceDate: Date): number {
+function getWeeklyCompletionCount(habit: Habit, referenceDate: Date): number {
     const startOfWeek = getStartOfWeek(referenceDate);
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(endOfWeek.getDate() + 7);
@@ -55,14 +55,6 @@ export function getWeeklyCompletionCount(habit: Habit, referenceDate: Date): num
         const d = new Date(c.date);
         return c.completed && d >= startOfWeek && d < endOfWeek;
     }).length;
-}
-
-/**
- * Check if weekly frequency limit has been reached
- */
-export function isWeeklyLimitReached(habit: Habit, referenceDate: Date): boolean {
-    if (habit.frequency !== 'times_per_week') return false;
-    return getWeeklyCompletionCount(habit, referenceDate) >= habit.timesPerWeek;
 }
 
 /**
