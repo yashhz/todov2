@@ -15,6 +15,7 @@ import { useKeyboardShortcut } from '../../hooks/useKeyboardShortcut';
 import { Calendar } from 'lucide-react';
 import { SmartInput } from '../../components/SmartInput';
 import type { ParsedCommand } from '../../types';
+import { hasGCalToken, createGoogleEventFromTask } from '../../services/googleCalendar';
 import './Tasks.css';
 
 // Format 24h time to 12h with AM/PM
@@ -573,21 +574,33 @@ export default function TasksPage() {
         }
     }
 
-    const handleSmartInputSubmit = (commands: ParsedCommand[]) => {
-        commands.forEach(p => {
-             if (p.type === 'task') {
-                 addTask({
-                     title: p.title,
-                     dueDate: p.date || todayStr(),
-                     dueTime: p.time,
-                     duration: p.duration,
-                     priority: p.priority || 'medium',
-                     tags: p.tagIds,
-                     projectId: p.projectId,
-                     linkedGoalId: p.goalId
-                 });
-             }
-        });
+    const handleSmartInputSubmit = async (commands: ParsedCommand[]) => {
+        const isConnected = hasGCalToken();
+        
+        for (const p of commands) {
+            if (p.type === 'task') {
+                const newTask = addTask({
+                    title: p.title,
+                    dueDate: p.date || todayStr(),
+                    dueTime: p.time,
+                    duration: p.duration,
+                    priority: p.priority || 'medium',
+                    tags: p.tagIds,
+                    projectId: p.projectId,
+                    linkedGoalId: p.goalId
+                });
+
+                // Auto-sync to Google Calendar if connected and has time
+                if (isConnected && newTask.dueDate && newTask.dueTime) {
+                    try {
+                        await createGoogleEventFromTask(newTask);
+                        console.log('Auto-synced task to Google Calendar:', newTask.title);
+                    } catch (err) {
+                        console.error('Failed to auto-sync task:', err);
+                    }
+                }
+            }
+        }
     };
 
     const activeCount = tasks.filter(t => !t.completed).length;

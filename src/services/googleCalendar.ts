@@ -45,19 +45,30 @@ async function gcalFetch(endpoint: string, options: RequestInit = {}) {
         ...(options.headers || {})
     };
 
+    console.log('Making Google Calendar API request:', endpoint);
+
     const response = await fetch(`https://www.googleapis.com/calendar/v3${endpoint}`, {
         ...options,
         headers
     });
+
+    console.log('Google Calendar API response status:', response.status);
 
     if (response.status === 401) {
         clearGCalToken();
         throw new Error('Google Calendar token expired. Please reconnect.');
     }
 
+    if (response.status === 403) {
+        const errorData = await response.json();
+        console.error('Google Calendar API 403 error:', errorData);
+        throw new Error('Access denied. Make sure Google Calendar API is enabled in Google Cloud Console.');
+    }
+
     if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Google Calendar API error: ${errorText}`);
+        console.error('Google Calendar API error response:', errorText);
+        throw new Error(`Google Calendar API error (${response.status}): ${errorText}`);
     }
 
     if (response.status === 204) {

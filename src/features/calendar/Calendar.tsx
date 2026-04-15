@@ -7,39 +7,51 @@ import { useTasks } from '../../hooks/useStore';
 import { formatDateStr } from '../../services/recurrence';
 import { SmartInput } from '../../components/SmartInput';
 import type { Task, ParsedCommand } from '../../types';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Trash2, X } from 'lucide-react';
+import Modal from '../../components/Modal';
 import './Calendar.css';
 
-import { fetchGoogleEvents, hasGCalToken, createGoogleEventFromTask, updateGoogleEvent } from '../../services/googleCalendar';
+import { fetchGoogleEvents, hasGCalToken, createGoogleEventFromTask, updateGoogleEvent, deleteGoogleEvent } from '../../services/googleCalendar';
 import { useEffect } from 'react';
 
 export default function CalendarView() {
-    const { tasks, addTask, updateTask } = useTasks();
+    const { tasks, addTask, updateTask, deleteTask } = useTasks();
     const calendarRef = useRef<FullCalendar>(null);
     const [viewType, setViewType] = useState<'timeGridDay' | 'timeGridThreeDay' | 'timeGridWeek'>('timeGridDay');
     const [gcalEvents, setGcalEvents] = useState<any[]>([]);
+    const [isSyncing, setIsSyncing] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [selectedEvent, setSelectedEvent] = useState<any>(null);
+    const [showEventModal, setShowEventModal] = useState(false);
 
     const isConnected = hasGCalToken();
 
-
-    useEffect(() => {
+    const loadGoogleEvents = async () => {
         if (!isConnected) return;
 
-        const loadEvents = async () => {
-            try {
-                const now = new Date();
-                // Fetch events from 1 month ago to 3 months ahead
-                const timeMin = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-                const timeMax = new Date(now.getFullYear(), now.getMonth() + 3, 1);
+        setIsLoading(true);
+        try {
+            const now = new Date();
+            // Fetch events from 1 month ago to 3 months ahead
+            const timeMin = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const timeMax = new Date(now.getFullYear(), now.getMonth() + 3, 1);
 
-                const events = await fetchGoogleEvents(timeMin, timeMax);
-                setGcalEvents(events);
-            } catch (err) {
-                console.error("Failed to load Google Events", err);
-            }
-        };
+            console.log('Fetching Google Calendar events from', timeMin, 'to', timeMax);
+            const events = await fetchGoogleEvents(timeMin, timeMax);
+            setGcalEvents(events);
+            console.log('Loaded Google Calendar events:', events.length, events);
+        } catch (err: any) {
+            console.error("Failed to load Google Events - Full error:", err);
+            console.error("Error message:", err.message);
+            console.error("Error stack:", err.stack);
+            alert(`Failed to load Google Calendar events: ${err.message}`);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-        loadEvents();
+    useEffect(() => {
+        loadGoogleEvents();
     }, [isConnected]);
 
     // Combine Planify Tasks and Google Events
@@ -63,41 +75,52 @@ export default function CalendarView() {
                     title: t.title,
                     start: startDate,
                     end: endDate,
-                    color: gcalMatch ? '#3b82f6' : 'var(--accent-muted)',
+                    color: gcalMatch ? '#3b82f6' : '#8b5cf6',
                     extendedProps: {
+                        type: 'planify',
                         task: t,
                         isGoogleEvent: !!gcalMatch,
-                        gcalId: gcalMatch?.id
+                        gcalId: gcalMatch?.id,
+                        gcalData: gcalMatch
                     }
                 };
             });
 
         const pureGoogleEvents = gcalEvents
-            .filter(ge => !ge.extendedProperties?.private?.planifyTaskId) // Only show ones not linked to Planify
+            .filter(ge => !ge.extendedProperties?.private?.planifyTaskId)
             .map(ge => {
                 const start = ge.start.dateTime || ge.start.date;
                 const end = ge.end.dateTime || ge.end.date;
                 return {
-                    id: ge.id,
+                    id: `gcal-${ge.id}`,
                     title: ge.summary || 'Busy',
                     start: start ? new Date(start) : new Date(),
                     end: end ? new Date(end) : new Date(),
-                    color: '#0f766e', // Teal color for Google Events
+                    color: '#10b981',
                     extendedProps: {
-                        isPureGoogle: true
+                        type: 'google',
+                        isPureGoogle: true,
+                        gcalId: ge.id,
+                        gcalData: ge,
+                        description: ge.description,
+                        recurrence: ge.recurrence
                     }
                 };
             });
 
+        console.log('Planify events:', planifyEvents.length, 'Google events:', pureGoogleEvents.length);
         return [...planifyEvents, ...pureGoogleEvents];
     }, [tasks, gcalEvents]);
 
     const handleEventDrop = async (dropInfo: any) => {
         const { event } = dropInfo;
+        const eventType = event.extendedProps.type;
 
-        if (event.extendedProps.isPureGoogle) {
-            // Revert drop for pure google events as we are only updating Planify -> Google right now
+        // For now, only allow dragging Planify tasks
+        // Google Calendar events are read-only in this view
+        if (eventType === 'google') {
             dropInfo.revert();
+            alert('Google Calendar events are read-only. Edit them in Google Calendar.');
             return;
         }
 
@@ -130,9 +153,11 @@ export default function CalendarView() {
 
     const handleEventResize = async (resizeInfo: any) => {
         const { event } = resizeInfo;
+        const eventType = event.extendedProps.type;
 
-        if (event.extendedProps.isPureGoogle) {
+        if (eventType === 'google') {
             resizeInfo.revert();
+            alert('Google Calendar events are read-only. Edit them in Google Calendar.');
             return;
         }
 
@@ -162,37 +187,116 @@ export default function CalendarView() {
     };
 
     const syncPendingTasksToGCal = async () => {
-        if (!isConnected) return;
+        if (!isConnected || isSyncing) return;
 
-        for (const t of tasks) {
-            if (t.dueDate && t.dueTime && !t.completed) {
-                // Check if already synced
-                const isSynced = gcalEvents.find(ge => ge.extendedProperties?.private?.planifyTaskId === t.id);
-                if (!isSynced) {
+        setIsSyncing(true);
+        let syncedCount = 0;
+
+        try {
+            for (const t of tasks) {
+                if (t.dueDate && t.dueTime && !t.completed) {
+                    // Check if already synced
+                    const isSynced = gcalEvents.find(ge => ge.extendedProperties?.private?.planifyTaskId === t.id);
+                    if (!isSynced) {
+                        try {
+                            const newEvent = await createGoogleEventFromTask(t);
+                            setGcalEvents(prev => [...prev, newEvent]);
+                            syncedCount++;
+                        } catch (err) {
+                            console.error("Failed to sync task", t.title, err);
+                        }
+                    }
+                }
+            }
+
+            if (syncedCount > 0) {
+                alert(`Synced ${syncedCount} task${syncedCount > 1 ? 's' : ''} to Google Calendar`);
+            } else {
+                alert('All tasks are already synced');
+            }
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
+    const handleEventClick = (clickInfo: any) => {
+        setSelectedEvent(clickInfo.event);
+        setShowEventModal(true);
+    };
+
+    const handleDeleteEvent = async () => {
+        if (!selectedEvent) return;
+
+        const eventType = selectedEvent.extendedProps.type;
+        
+        if (eventType === 'planify') {
+            // Delete Planify task
+            const taskId = selectedEvent.id;
+            
+            // If synced to Google Calendar, delete from there too
+            if (isConnected && selectedEvent.extendedProps.gcalId) {
+                try {
+                    await deleteGoogleEvent(selectedEvent.extendedProps.gcalId);
+                    setGcalEvents(prev => prev.filter(e => e.id !== selectedEvent.extendedProps.gcalId));
+                } catch (err) {
+                    console.error("Failed to delete from Google Calendar", err);
+                }
+            }
+            
+            deleteTask(taskId);
+        } else if (eventType === 'google') {
+            // Delete pure Google Calendar event
+            if (window.confirm('Delete this Google Calendar event? This cannot be undone.')) {
+                try {
+                    await deleteGoogleEvent(selectedEvent.extendedProps.gcalId);
+                    setGcalEvents(prev => prev.filter(e => e.id !== selectedEvent.extendedProps.gcalId));
+                } catch (err) {
+                    console.error("Failed to delete Google Calendar event", err);
+                    alert('Failed to delete event from Google Calendar');
+                }
+            }
+        }
+        
+        setShowEventModal(false);
+        setSelectedEvent(null);
+    };
+
+    const formatEventTime = (date: Date) => {
+        return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    };
+
+    const formatEventDate = (date: Date) => {
+        return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    };
+
+    const handleSmartInputSubmit = async (commands: ParsedCommand[]) => {
+        for (const p of commands) {
+            if (p.type === 'task') {
+                const newTask = addTask({
+                    title: p.title,
+                    dueDate: p.date || formatDateStr(new Date()),
+                    dueTime: p.time,
+                    duration: p.duration,
+                    priority: p.priority || 'medium',
+                    tags: p.tagIds
+                });
+
+                // Auto-sync to Google Calendar if connected and has time
+                if (isConnected && newTask.dueDate && newTask.dueTime) {
                     try {
-                        const newEvent = await createGoogleEventFromTask(t);
-                        setGcalEvents(prev => [...prev, newEvent]);
+                        const gcalEvent = await createGoogleEventFromTask(newTask);
+                        setGcalEvents(prev => [...prev, gcalEvent]);
+                        console.log('Auto-synced task to Google Calendar:', newTask.title);
                     } catch (err) {
-                        console.error("Failed to sync task", t.title, err);
+                        console.error('Failed to auto-sync task:', err);
                     }
                 }
             }
         }
     };
 
-    const handleSmartInputSubmit = (commands: ParsedCommand[]) => {
-        commands.forEach(p => {
-             if (p.type === 'task') {
-                 addTask({
-                     title: p.title,
-                     dueDate: p.date || formatDateStr(new Date()),
-                     dueTime: p.time,
-                     duration: p.duration,
-                     priority: p.priority || 'medium',
-                     tags: p.tagIds
-                 });
-             }
-        });
+    const refreshGoogleEvents = async () => {
+        await loadGoogleEvents();
     };
 
     const changeView = (view: 'timeGridDay' | 'timeGridThreeDay' | 'timeGridWeek') => {
@@ -213,9 +317,23 @@ export default function CalendarView() {
 
                   <div className="cal-header__right" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                        {isConnected && (
-                           <button className="cal-nav-btn" onClick={syncPendingTasksToGCal} style={{ background: 'var(--accent-primary)', color: 'white' }}>
-                               Sync to GCal
-                           </button>
+                           <>
+                               <button 
+                                   className="cal-refresh-btn" 
+                                   onClick={refreshGoogleEvents}
+                                   disabled={isLoading}
+                                   title="Refresh Google Calendar events"
+                               >
+                                   {isLoading ? '↻' : '↻'}
+                               </button>
+                               <button 
+                                   className="cal-sync-btn" 
+                                   onClick={syncPendingTasksToGCal}
+                                   disabled={isSyncing}
+                               >
+                                   {isSyncing ? 'Syncing...' : 'Sync to GCal'}
+                               </button>
+                           </>
                        )}
                        <div className="cal-view-toggles">
                             <button className={`cal-view-toggle ${viewType === 'timeGridDay' ? 'active' : ''}`} onClick={() => changeView('timeGridDay')}>1 Day</button>
@@ -251,12 +369,95 @@ export default function CalendarView() {
                      droppable={true}
                      eventDrop={handleEventDrop}
                      eventResize={handleEventResize}
+                     eventClick={handleEventClick}
                      slotMinTime="06:00:00"
                      allDaySlot={false}
                      height="100%"
                      nowIndicator={true}
                  />
              </div>
+
+             {/* Event Detail Modal */}
+             {showEventModal && selectedEvent && (
+                 <Modal isOpen={showEventModal} onClose={() => { setShowEventModal(false); setSelectedEvent(null); }}>
+                     <div className="event-modal">
+                         <div className="event-modal__header">
+                             <h2 className="event-modal__title">{selectedEvent.title}</h2>
+                             <button 
+                                 className="event-modal__close" 
+                                 onClick={() => { setShowEventModal(false); setSelectedEvent(null); }}
+                                 aria-label="Close"
+                             >
+                                 <X size={20} />
+                             </button>
+                         </div>
+
+                         <div className="event-modal__body">
+                             <div className="event-modal__section">
+                                 <span className="event-modal__label">Type</span>
+                                 <span className="event-modal__value">
+                                     {selectedEvent.extendedProps.type === 'planify' ? (
+                                         <span className="event-badge event-badge--planify">Planify Task</span>
+                                     ) : (
+                                         <span className="event-badge event-badge--google">Google Calendar</span>
+                                     )}
+                                 </span>
+                             </div>
+
+                             <div className="event-modal__section">
+                                 <span className="event-modal__label">Date</span>
+                                 <span className="event-modal__value">{formatEventDate(selectedEvent.start)}</span>
+                             </div>
+
+                             <div className="event-modal__section">
+                                 <span className="event-modal__label">Time</span>
+                                 <span className="event-modal__value">
+                                     {formatEventTime(selectedEvent.start)} - {formatEventTime(selectedEvent.end)}
+                                 </span>
+                             </div>
+
+                             {selectedEvent.extendedProps.type === 'planify' && selectedEvent.extendedProps.task?.description && (
+                                 <div className="event-modal__section">
+                                     <span className="event-modal__label">Description</span>
+                                     <p className="event-modal__description">{selectedEvent.extendedProps.task.description}</p>
+                                 </div>
+                             )}
+
+                             {selectedEvent.extendedProps.type === 'google' && selectedEvent.extendedProps.description && (
+                                 <div className="event-modal__section">
+                                     <span className="event-modal__label">Description</span>
+                                     <p className="event-modal__description">{selectedEvent.extendedProps.description}</p>
+                                 </div>
+                             )}
+
+                             {selectedEvent.extendedProps.type === 'google' && selectedEvent.extendedProps.recurrence && (
+                                 <div className="event-modal__section">
+                                     <span className="event-modal__label">Recurrence</span>
+                                     <span className="event-modal__value event-modal__recurrence">
+                                         {selectedEvent.extendedProps.recurrence.join(', ')}
+                                     </span>
+                                 </div>
+                             )}
+
+                             {selectedEvent.extendedProps.isGoogleEvent && (
+                                 <div className="event-modal__section">
+                                     <span className="event-modal__info">✓ Synced with Google Calendar</span>
+                                 </div>
+                             )}
+                         </div>
+
+                         <div className="event-modal__footer">
+                             <button 
+                                 className="event-modal__btn event-modal__btn--danger"
+                                 onClick={handleDeleteEvent}
+                             >
+                                 <Trash2 size={16} />
+                                 Delete Event
+                             </button>
+                         </div>
+                     </div>
+                 </Modal>
+             )}
         </div>
     );
 }
