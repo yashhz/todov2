@@ -234,6 +234,14 @@ export default function Dashboard() {
     const { period, greeting } = getGreeting(userName);
     const parentGoals = useMemo(() => getParentGoals(), [getParentGoals, goals]);
 
+    const parentGoalsProgress = useMemo(() => {
+        const progressMap = new Map<string, ReturnType<typeof getAggregateProgress>>();
+        parentGoals.forEach(g => {
+            progressMap.set(g.id, getAggregateProgress(g.id));
+        });
+        return progressMap;
+    }, [parentGoals, getAggregateProgress, state.tasks]);
+
     // User Preferences
     const prefs = state.preferences || { pinnedGoalId: null, dashboardSections: DEFAULT_SECTIONS };
     const sections = useMemo(() => {
@@ -524,7 +532,7 @@ export default function Dashboard() {
                             <p className="d-sidebar-label">All goals</p>
                             <div className="d-goal-list">
                                 {parentGoals.map(g => {
-                                    const agg = getAggregateProgress(g.id);
+                                    const agg = parentGoalsProgress.get(g.id) || { percent: 0, isUmbrella: false };
                                     const pct = agg.percent;
                                     const canLog = !agg.isUmbrella && g.targetValue !== null && pct < 100;
                                     return (
