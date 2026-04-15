@@ -1,8 +1,8 @@
 .cal-page {
     display: flex;
     flex-direction: column;
-    height: 100%;
-    overflow: hidden;
+    flex: 1;
+    min-height: 0;
 }
 
 .cal-header {
@@ -87,7 +87,8 @@
 
 /* Grid layout */
 .cal-grid-container {
-    flex: 1;
+    flex: 1 1 auto; /* Use flex growing to take remaining space */
+    min-height: 0; /* Important for flex children to allow inner scrolling */
     display: flex;
     flex-direction: column;
     background: var(--surface-glass);
@@ -96,129 +97,94 @@
     overflow: hidden;
 }
 
-.cal-grid-header {
-    display: flex;
-    border-bottom: 1px solid var(--surface-border);
-    background: rgba(0,0,0,0.2);
+.cal-grid-container .fc {
+    height: 100%; /* Fill the container */
 }
 
-.cal-time-col-spacer {
-    width: 60px;
-    flex-shrink: 0;
-    border-right: 1px solid var(--surface-border);
+/* FullCalendar Overrides for Dark Mode / Glassmorphism */
+.fc {
+    --fc-page-bg-color: transparent;
+    --fc-neutral-bg-color: rgba(255, 255, 255, 0.05);
+    --fc-neutral-text-color: var(--text-secondary);
+    --fc-border-color: var(--surface-border);
+
+    --fc-button-text-color: var(--text-primary);
+    --fc-button-bg-color: rgba(255, 255, 255, 0.05);
+    --fc-button-border-color: var(--surface-border);
+    --fc-button-hover-bg-color: rgba(255, 255, 255, 0.1);
+    --fc-button-hover-border-color: var(--surface-border);
+    --fc-button-active-bg-color: rgba(255, 255, 255, 0.15);
+    --fc-button-active-border-color: var(--surface-border);
+
+    --fc-event-bg-color: var(--accent-muted);
+    --fc-event-border-color: var(--accent-glow);
+    --fc-event-text-color: var(--text-primary);
+
+    --fc-today-bg-color: rgba(59, 130, 246, 0.1); /* Subtle blue for today */
+    --fc-now-indicator-color: var(--accent-primary);
 }
 
-.cal-date-col-header {
-    flex: 1;
-    text-align: center;
-    padding: var(--sp-2) 0;
-    font-size: 13px;
+/* Toolbar adjustments */
+.fc .fc-toolbar.fc-header-toolbar {
+    margin-bottom: var(--sp-4);
+    padding: 0 var(--sp-2);
+}
+
+.fc .fc-toolbar-title {
+    font-size: var(--fs-lg);
     font-weight: 500;
+    color: var(--text-primary);
+}
+
+.fc-theme-standard th {
+    border-color: var(--surface-border);
+}
+
+.fc-theme-standard td {
+    border-color: var(--surface-border);
+}
+
+/* Event styling */
+.fc-v-event {
+    background-color: var(--accent-muted);
+    border: 1px solid var(--accent-glow);
+    border-radius: var(--radius-sm);
+    padding: 2px 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: opacity 0.2s, transform 0.1s;
+}
+
+.fc-v-event .fc-event-title {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.fc-v-event .fc-event-time {
+    font-size: 11px;
     color: var(--text-secondary);
-    border-right: 1px solid rgba(255,255,255,0.05);
 }
 
-.cal-date-col-header--today {
-    color: var(--accent-primary);
-    font-weight: 700;
-}
-
-.cal-grid-body {
-    flex: 1;
-    display: flex;
-    overflow-y: auto;
-    position: relative;
-    /* smooth scroll */
-    scroll-behavior: smooth;
-}
-
-.cal-time-col {
-    width: 60px;
-    flex-shrink: 0;
-    border-right: 1px solid var(--surface-border);
-    background: rgba(0,0,0,0.1);
-}
-
-.cal-time-slot {
-    height: 60px;
-    position: relative;
-}
-
-.cal-time-label {
-    position: absolute;
-    top: -8px;
-    right: 8px;
+/* Time axis text */
+.fc-timegrid-axis-cushion {
     font-size: 11px;
     color: var(--text-tertiary);
 }
 
-.cal-days-container {
-    flex: 1;
-    display: flex;
-    position: relative;
+/* Hide scrollbars but keep scroll functionality if possible, or style them */
+.fc-scroller::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
 }
 
-.cal-grid-lines {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
+.fc-scroller::-webkit-scrollbar-track {
+    background: transparent;
 }
 
-.cal-grid-line {
-    height: 60px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
+.fc-scroller::-webkit-scrollbar-thumb {
+    background: var(--surface-border);
+    border-radius: 4px;
 }
 
-.cal-day-col {
-    flex: 1;
-    border-right: 1px solid rgba(255,255,255,0.05);
-    position: relative;
-}
-
-.cal-day-col:last-child {
-    border-right: none;
-}
-
-.cal-event {
-    position: absolute;
-    left: 4px;
-    right: 4px;
-    background: var(--accent-muted);
-    border: 1px solid var(--accent-glow);
-    border-radius: var(--radius-sm);
-    padding: 4px 8px;
-    cursor: grab;
-    overflow: hidden;
-    transition: opacity 0.2s, transform 0.1s;
-    user-select: none;
-}
-
-.cal-event:active {
-    cursor: grabbing;
-    opacity: 0.8;
-    transform: scale(0.98);
-}
-
-.cal-event--ghost {
-    opacity: 0.7;
-    border: 1px dashed var(--accent-primary);
-    pointer-events: none; /* Let pointer events pass through to capture grid cell */
-    z-index: 100;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-    background: rgba(59, 130, 246, 0.2);
-}
-
-.cal-event-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.cal-event-time {
-    font-size: 11px;
-    color: var(--text-secondary);
-    margin-top: 2px;
+.fc-scroller::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
 }

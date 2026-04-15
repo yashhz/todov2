@@ -1,154 +1,182 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useRef, useMemo, useState } from 'react';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
 import { useTasks } from '../../hooks/useStore';
 import { formatDateStr } from '../../services/recurrence';
 import { SmartInput } from '../../components/SmartInput';
-import type { Task, ParsedCommand } from '../../types';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock } from 'lucide-react';
+import type { ParsedCommand } from '../../types';
 import './Calendar.css';
 
-// Helpers
-const HOURS = Array.from({ length: 24 }, (_, i) => i);
-const HOUR_HEIGHT = 60; // 60px per hour
-const START_HOUR = 6; // Scroll default to 6 AM
-
-function getDayString(date: Date) {
-  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-}
-
-function timeToPixels(timeStr: string): number {
-    if (!timeStr) return 0;
-    const [h, m] = timeStr.split(':').map(Number);
-    return (h * HOUR_HEIGHT) + ((m / 60) * HOUR_HEIGHT);
-}
-
-function pixelsToTime(px: number): string {
-    const totalHours = Math.max(0, Math.min(23.99, px / HOUR_HEIGHT));
-    const h = Math.floor(totalHours);
-    const m = Math.floor((totalHours - h) * 60);
-    // Snap to nearest 15 mins for cleaner drag
-    const snappedM = Math.round(m / 15) * 15;
-    const finalH = snappedM === 60 ? h + 1 : h;
-    const finalM = snappedM === 60 ? 0 : snappedM;
-    return `${String(finalH).padStart(2, '0')}:${String(finalM).padStart(2, '0')}`;
-}
+import { fetchGoogleEvents, hasGCalToken, createGoogleEventFromTask, updateGoogleEvent } from '../../services/googleCalendar';
+import { useEffect } from 'react';
 
 export default function CalendarView() {
     const { tasks, addTask, updateTask } = useTasks();
-    const [baseDate, setBaseDate] = useState(new Date());
-    const [viewType, setViewType] = useState<'day' | '3day' | 'week'>('day');
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const calendarRef = useRef<FullCalendar>(null);
+    const [viewType, setViewType] = useState<'timeGridDay' | 'timeGridThreeDay' | 'timeGridWeek'>('timeGridDay');
+    const [gcalEvents, setGcalEvents] = useState<any[]>([]);
 
-    // Auto-scroll to morning
+    const isConnected = hasGCalToken();
+
+
     useEffect(() => {
-        if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollTop = START_HOUR * HOUR_HEIGHT;
-        }
-    }, []);
+        if (!isConnected) return;
 
-    const numDays = viewType === 'day' ? 1 : viewType === '3day' ? 3 : 7;
+        const loadEvents = async () => {
+            try {
+                const now = new Date();
+                // Fetch events from 1 month ago to 3 months ahead
+                const timeMin = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                const timeMax = new Date(now.getFullYear(), now.getMonth() + 3, 1);
 
-    const visibleDates = useMemo(() => {
-        const dates: Date[] = [];
-        const start = new Date(baseDate);
-        if (viewType === 'week') {
-            // Align to Monday
-            const day = start.getDay();
-            const diff = start.getDate() - day + (day === 0 ? -6 : 1);
-            start.setDate(diff);
-        }
-        for (let i = 0; i < numDays; i++) {
-            const d = new Date(start);
-            d.setDate(start.getDate() + i);
-            dates.push(d);
-        }
-        return dates;
-    }, [baseDate, viewType, numDays]);
-
-    const handlePrev = () => {
-        const d = new Date(baseDate);
-        d.setDate(d.getDate() - numDays);
-        setBaseDate(d);
-    };
-
-    const handleNext = () => {
-        const d = new Date(baseDate);
-        d.setDate(d.getDate() + numDays);
-        setBaseDate(d);
-    };
-
-    const handleToday = () => {
-        setBaseDate(new Date());
-    };
-
-    // Drag state
-    const [draggingTask, setDraggingTask] = useState<{ id: string; yOffset: number; dateIdx: number } | null>(null);
-    const [dragGhostPos, setDragGhostPos] = useState<{ top: number; height: number; colIdx: number } | null>(null);
-
-    const handleDragStart = (e: React.MouseEvent, task: Task, dateIdx: number) => {
-        e.stopPropagation();
-        if (!task.dueTime) return;
-
-        // Prevent default drag to use our custom mouse-based dragging for smoother experience
-        e.preventDefault();
-
-        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-        const yOffset = e.clientY - rect.top;
-
-        setDraggingTask({ id: task.id, yOffset, dateIdx });
-
-        const top = timeToPixels(task.dueTime);
-        const height = (task.duration ? (task.duration / 60) : 1) * HOUR_HEIGHT;
-        setDragGhostPos({ top, height, colIdx: dateIdx });
-
-        // Add document-level event listeners for smooth dragging outside of the immediate element
-        const handleMouseMove = (moveEvent: MouseEvent) => {
-             // We need to find the column we are currently hovering over
-             const gridBody = scrollContainerRef.current;
-             if (!gridBody) return;
-
-             const bodyRect = gridBody.getBoundingClientRect();
-             // Adjust mouse Y to be relative to the scroll container's content
-             const yInsideBody = moveEvent.clientY - bodyRect.top + gridBody.scrollTop;
-             const rawTop = yInsideBody - yOffset;
-
-             // Snap top to nearest 15 mins (which is HOUR_HEIGHT / 4)
-             const snapInterval = HOUR_HEIGHT / 4;
-             const snappedTop = Math.max(0, Math.round(rawTop / snapInterval) * snapInterval);
-
-             // Find which column we are in
-             const cols = gridBody.querySelectorAll('.cal-day-col');
-             let hoveredColIdx = dateIdx; // Default to original column
-             cols.forEach((col, idx) => {
-                 const colRect = col.getBoundingClientRect();
-                 if (moveEvent.clientX >= colRect.left && moveEvent.clientX <= colRect.right) {
-                     hoveredColIdx = idx;
-                 }
-             });
-
-             setDragGhostPos({ top: snappedTop, height, colIdx: hoveredColIdx });
+                const events = await fetchGoogleEvents(timeMin, timeMax);
+                setGcalEvents(events);
+            } catch (err) {
+                console.error("Failed to load Google Events", err);
+            }
         };
 
-        const handleMouseUp = (upEvent: MouseEvent) => {
-             window.removeEventListener('mousemove', handleMouseMove);
-             window.removeEventListener('mouseup', handleMouseUp);
+        loadEvents();
+    }, [isConnected]);
 
-             setDragGhostPos(prevGhost => {
-                 if (prevGhost) {
-                     const newTime = pixelsToTime(prevGhost.top);
-                     const newDateStr = formatDateStr(visibleDates[prevGhost.colIdx]);
+    // Combine Planify Tasks and Google Events
+    const events = useMemo(() => {
+        const planifyEvents = tasks
+            .filter(t => t.dueDate && t.dueTime && !t.completed)
+            .map(t => {
+                const startStr = `${t.dueDate}T${t.dueTime}:00`;
+                const startDate = new Date(startStr);
 
-                     const currentTask = tasks.find(t => t.id === task.id);
-                     if (currentTask) {
-                         updateTask({ ...currentTask, dueTime: newTime, dueDate: newDateStr });
-                     }
-                 }
-                 setDraggingTask(null);
-                 return null;
-             });
-        };
+                let endDate = new Date(startDate.getTime() + (60 * 60 * 1000));
+                if (t.duration) {
+                    endDate = new Date(startDate.getTime() + (t.duration * 60 * 1000));
+                }
 
-        window.addEventListener('mousemove', handleMouseMove);
-        window.addEventListener('mouseup', handleMouseUp);
+                // Check if this task is already in Google Events
+                const gcalMatch = gcalEvents.find(ge => ge.extendedProperties?.private?.planifyTaskId === t.id);
+
+                return {
+                    id: t.id,
+                    title: t.title,
+                    start: startDate,
+                    end: endDate,
+                    color: gcalMatch ? '#3b82f6' : 'var(--accent-muted)',
+                    extendedProps: {
+                        task: t,
+                        isGoogleEvent: !!gcalMatch,
+                        gcalId: gcalMatch?.id
+                    }
+                };
+            });
+
+        const pureGoogleEvents = gcalEvents
+            .filter(ge => !ge.extendedProperties?.private?.planifyTaskId) // Only show ones not linked to Planify
+            .map(ge => {
+                const start = ge.start.dateTime || ge.start.date;
+                const end = ge.end.dateTime || ge.end.date;
+                return {
+                    id: ge.id,
+                    title: ge.summary || 'Busy',
+                    start: start ? new Date(start) : new Date(),
+                    end: end ? new Date(end) : new Date(),
+                    color: '#0f766e', // Teal color for Google Events
+                    extendedProps: {
+                        isPureGoogle: true
+                    }
+                };
+            });
+
+        return [...planifyEvents, ...pureGoogleEvents];
+    }, [tasks, gcalEvents]);
+
+    const handleEventDrop = async (dropInfo: any) => {
+        const { event } = dropInfo;
+
+        if (event.extendedProps.isPureGoogle) {
+            // Revert drop for pure google events as we are only updating Planify -> Google right now
+            dropInfo.revert();
+            return;
+        }
+
+        const taskId = event.id;
+        const task = tasks.find(t => t.id === taskId);
+
+        if (task) {
+            const start = event.start as Date;
+            const newDate = formatDateStr(start);
+            const newTime = `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`;
+
+            const updatedTask = {
+                ...task,
+                dueDate: newDate,
+                dueTime: newTime
+            };
+
+            updateTask(updatedTask);
+
+            // Sync to Google Calendar if linked
+            if (isConnected && event.extendedProps.gcalId) {
+                try {
+                    await updateGoogleEvent(event.extendedProps.gcalId, updatedTask);
+                } catch (err) {
+                    console.error("Failed to update Google event", err);
+                }
+            }
+        }
+    };
+
+    const handleEventResize = async (resizeInfo: any) => {
+        const { event } = resizeInfo;
+
+        if (event.extendedProps.isPureGoogle) {
+            resizeInfo.revert();
+            return;
+        }
+
+        const taskId = event.id;
+        const task = tasks.find(t => t.id === taskId);
+
+        if (task && event.start && event.end) {
+            const durationMs = event.end.getTime() - event.start.getTime();
+            const durationMins = Math.round(durationMs / 60000);
+
+            const updatedTask = {
+                ...task,
+                duration: durationMins
+            };
+
+            updateTask(updatedTask);
+
+            // Sync to Google Calendar if linked
+            if (isConnected && event.extendedProps.gcalId) {
+                try {
+                    await updateGoogleEvent(event.extendedProps.gcalId, updatedTask);
+                } catch (err) {
+                    console.error("Failed to update Google event", err);
+                }
+            }
+        }
+    };
+
+    const syncPendingTasksToGCal = async () => {
+        if (!isConnected) return;
+
+        for (const t of tasks) {
+            if (t.dueDate && t.dueTime && !t.completed) {
+                // Check if already synced
+                const isSynced = gcalEvents.find(ge => ge.extendedProperties?.private?.planifyTaskId === t.id);
+                if (!isSynced) {
+                    try {
+                        const newEvent = await createGoogleEventFromTask(t);
+                        setGcalEvents(prev => [...prev, newEvent]);
+                    } catch (err) {
+                        console.error("Failed to sync task", t.title, err);
+                    }
+                }
+            }
+        }
     };
 
     const handleSmartInputSubmit = (commands: ParsedCommand[]) => {
@@ -156,7 +184,7 @@ export default function CalendarView() {
              if (p.type === 'task') {
                  addTask({
                      title: p.title,
-                     dueDate: p.date || formatDateStr(baseDate),
+                     dueDate: p.date || formatDateStr(new Date()),
                      dueTime: p.time,
                      duration: p.duration,
                      priority: p.priority || 'medium',
@@ -166,26 +194,32 @@ export default function CalendarView() {
         });
     };
 
+    const changeView = (view: 'timeGridDay' | 'timeGridThreeDay' | 'timeGridWeek') => {
+        setViewType(view);
+        if (calendarRef.current) {
+            const calendarApi = calendarRef.current.getApi();
+            calendarApi.changeView(view);
+        }
+    };
+
     return (
         <div className="cal-page page-enter">
              <div className="cal-header">
                   <div className="cal-header__left">
                        <h1 className="cal-title">Calendar</h1>
-                       <div className="cal-nav">
-                            <button className="cal-nav-btn" onClick={handlePrev}><ChevronLeft size={16} /></button>
-                            <button className="cal-nav-btn" onClick={handleToday}>Today</button>
-                            <button className="cal-nav-btn" onClick={handleNext}><ChevronRight size={16} /></button>
-                       </div>
-                       <span className="cal-date-label">
-                           {visibleDates[0].toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                       </span>
+                       {/* Date label will be handled by FullCalendar header */}
                   </div>
 
-                  <div className="cal-header__right">
+                  <div className="cal-header__right" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                       {isConnected && (
+                           <button className="cal-nav-btn" onClick={syncPendingTasksToGCal} style={{ background: 'var(--accent-primary)', color: 'white' }}>
+                               Sync to GCal
+                           </button>
+                       )}
                        <div className="cal-view-toggles">
-                            <button className={`cal-view-toggle ${viewType === 'day' ? 'active' : ''}`} onClick={() => setViewType('day')}>1 Day</button>
-                            <button className={`cal-view-toggle ${viewType === '3day' ? 'active' : ''}`} onClick={() => setViewType('3day')}>3 Days</button>
-                            <button className={`cal-view-toggle ${viewType === 'week' ? 'active' : ''}`} onClick={() => setViewType('week')}>Week</button>
+                            <button className={`cal-view-toggle ${viewType === 'timeGridDay' ? 'active' : ''}`} onClick={() => changeView('timeGridDay')}>1 Day</button>
+                            <button className={`cal-view-toggle ${viewType === 'timeGridThreeDay' ? 'active' : ''}`} onClick={() => changeView('timeGridThreeDay')}>3 Days</button>
+                            <button className={`cal-view-toggle ${viewType === 'timeGridWeek' ? 'active' : ''}`} onClick={() => changeView('timeGridWeek')}>Week</button>
                        </div>
                   </div>
              </div>
@@ -194,90 +228,33 @@ export default function CalendarView() {
                  <SmartInput onSubmit={handleSmartInputSubmit} placeholder="Add to calendar (e.g., 'Meeting tomorrow at 2pm for 60m')" />
              </div>
 
-             <div className="cal-grid-container">
-                  {/* Header Row */}
-                  <div className="cal-grid-header">
-                      <div className="cal-time-col-spacer"></div>
-                      {visibleDates.map((date, i) => (
-                          <div key={i} className={`cal-date-col-header ${formatDateStr(date) === formatDateStr(new Date()) ? 'cal-date-col-header--today' : ''}`}>
-                              {getDayString(date)}
-                          </div>
-                      ))}
-                  </div>
-
-                  {/* Scrollable Body */}
-                  <div className="cal-grid-body" ref={scrollContainerRef}>
-                      {/* Time Column */}
-                      <div className="cal-time-col">
-                           {HOURS.map(h => (
-                               <div key={h} className="cal-time-slot">
-                                   <span className="cal-time-label">{h === 0 ? '12 AM' : h < 12 ? `${h} AM` : h === 12 ? '12 PM' : `${h - 12} PM`}</span>
-                               </div>
-                           ))}
-                      </div>
-
-                      {/* Day Columns */}
-                      <div className="cal-days-container">
-                           {/* Horizontal lines */}
-                           <div className="cal-grid-lines">
-                                {HOURS.map(h => (
-                                    <div key={h} className="cal-grid-line"></div>
-                                ))}
-                           </div>
-
-                           {/* Columns */}
-                           {visibleDates.map((date, colIdx) => {
-                               const dStr = formatDateStr(date);
-                               const dayTasks = tasks.filter(t => t.dueDate === dStr && t.dueTime && !t.completed);
-
-                               return (
-                                   <div
-                                       key={colIdx}
-                                       className="cal-day-col"
-                                   >
-                                       {/* Render actual events unless they are currently being dragged */}
-                                       {dayTasks.map(task => {
-                                           if (draggingTask?.id === task.id) return null; // Don't render the static version if dragging
-
-                                           const top = timeToPixels(task.dueTime!);
-                                           // Default duration 60 mins if none specified
-                                           const height = (task.duration ? (task.duration / 60) : 1) * HOUR_HEIGHT;
-                                           return (
-                                               <div
-                                                    key={task.id}
-                                                    className="cal-event"
-                                                    style={{ top: `${top}px`, height: `${height}px` }}
-                                                    onMouseDown={(e) => handleDragStart(e, task, colIdx)}
-                                               >
-                                                    <div className="cal-event-title">{task.title}</div>
-                                                    <div className="cal-event-time">
-                                                         {task.dueTime} {task.duration ? `(${task.duration}m)` : ''}
-                                                    </div>
-                                               </div>
-                                           );
-                                       })}
-
-                                       {/* Render ghost event if dragging in this column */}
-                                       {draggingTask && dragGhostPos && dragGhostPos.colIdx === colIdx && (() => {
-                                            const ghostTask = tasks.find(t => t.id === draggingTask.id);
-                                            if (!ghostTask) return null;
-                                            return (
-                                                <div
-                                                     className="cal-event cal-event--ghost"
-                                                     style={{ top: `${dragGhostPos.top}px`, height: `${dragGhostPos.height}px` }}
-                                                >
-                                                     <div className="cal-event-title">{ghostTask.title}</div>
-                                                     <div className="cal-event-time">
-                                                          {pixelsToTime(dragGhostPos.top)} {ghostTask.duration ? `(${ghostTask.duration}m)` : ''}
-                                                     </div>
-                                                </div>
-                                            );
-                                       })()}
-                                   </div>
-                               );
-                           })}
-                      </div>
-                  </div>
+             <div className="cal-grid-container" style={{ flex: 1, minHeight: 0 }}>
+                 <FullCalendar
+                     ref={calendarRef}
+                     plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                     initialView={viewType}
+                     views={{
+                        timeGridThreeDay: {
+                            type: 'timeGrid',
+                            duration: { days: 3 },
+                            buttonText: '3 day'
+                        }
+                     }}
+                     headerToolbar={{
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: ''
+                     }}
+                     events={events}
+                     editable={true}
+                     droppable={true}
+                     eventDrop={handleEventDrop}
+                     eventResize={handleEventResize}
+                     slotMinTime="06:00:00"
+                     allDaySlot={false}
+                     height="100%"
+                     nowIndicator={true}
+                 />
              </div>
         </div>
     );

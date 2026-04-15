@@ -42,7 +42,7 @@ export default function GoalDetail() {
     const subGoals = useMemo(() => goals.filter(g => g.parentGoalId === goal.id), [goals, goal.id]);
     const parentGoal = goal.parentGoalId ? goals.find(g => g.id === goal.parentGoalId) : null;
 
-    const isUmbrella = goal.goalType === 'outcome';
+    const isUmbrella = goal.goalType === 'milestone';
     const aggProgress = getAggregateProgress(goal.id);
     const currentVal = isUmbrella ? aggProgress.percent : goal.currentValue;
     const maxVal = isUmbrella ? 100 : (goal.targetValue ?? 100);
