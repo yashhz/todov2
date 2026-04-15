@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useGoals, useProjects } from '../hooks/useStore';
 import { parseBatch, formatParsedDate, formatParsedTime, formatDuration } from '../services/commandParser';
 import type { ParsedCommand, ParsedToken } from '../types';

@@ -65,8 +65,7 @@ function ArcProgress({ progress, color, size = 72 }: { progress: number; color: 
 
 // ─── Task row — lean, minimal ──────────────────────
 
-// @ts-ignore
-function _TaskRow({ task, projectColor, onToggle }: { task: Task; projectColor: string; onToggle: () => void }) {
+function TaskRow({ task, projectColor, onToggle }: { task: Task; projectColor: string; onToggle: () => void }) {
     return (
         <div className={`d-task-row ${task.completed ? 'd-task-row--done' : ''}`} onClick={onToggle}>
             <div className={`d-task-check ${task.completed ? 'd-task-check--done' : ''}`}>
@@ -301,7 +300,6 @@ export default function Dashboard() {
 
     // Data Filtering - Optimized useMemo
     const allTodayTasks  = useMemo(() => tasks.filter(t => t.dueDate === todayStr), [tasks, todayStr]);
-    // @ts-ignore
     const pendingTasks   = useMemo(() => allTodayTasks.filter(t => !t.completed), [allTodayTasks]);
     const completedTasks = useMemo(() => allTodayTasks.filter(t => t.completed), [allTodayTasks]);
     const overdueTasks   = useMemo(() => tasks.filter(t => t.dueDate && t.dueDate < todayStr && !t.completed), [tasks, todayStr]);

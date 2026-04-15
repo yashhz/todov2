@@ -79,7 +79,7 @@ export function useTasks() {
                 if (!link.contributionValue) continue;
                 // Skip if the linked goal is an outcome (aggregator) — it doesn't accept direct contributions
                 const linkedGoal = state.goals.find(g => g.id === link.goalId);
-                if (!linkedGoal || linkedGoal.goalType === 'milestone') continue;
+                if (!linkedGoal || linkedGoal.goalType === 'outcome') continue;
 
                 const delta = task.completed ? -link.contributionValue : link.contributionValue;
                 const entry: ProgressEntry = {
@@ -314,7 +314,7 @@ export function useHabits() {
                 if (!link.contributionValue) continue;
                 // Skip if goal is outcome type — outcome goals are aggregators, not recipients
                 const linkedGoal = state.goals.find(g => g.id === link.goalId);
-                if (!linkedGoal || linkedGoal.goalType === 'milestone') continue;
+                if (!linkedGoal || linkedGoal.goalType === 'outcome') continue;
 
                 const delta = isCompleting ? link.contributionValue : -link.contributionValue;
                 const entry: ProgressEntry = {

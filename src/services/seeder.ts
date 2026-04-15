@@ -17,7 +17,7 @@ export function seedDemoData() {
     const goals: Goal[] = [
         { id: 'goal-revenue', title: 'Hit $10k MRR', color: '#10b981', icon: '💰', description: 'Monthly Recurring Revenue target', why: 'Financial freedom', goalType: 'measurable', targetValue: 10000, currentValue: 2500, unit: 'USD', createdAt: new Date().toISOString(), entries: [], parentGoalId: null },
         { id: 'goal-health', title: 'Sub-4h Marathon', color: '#ef4444', icon: '🏅', description: 'Peak physical condition', why: 'Longevity and discipline', goalType: 'measurable', targetValue: 240, currentValue: 310, unit: 'min', createdAt: new Date().toISOString(), entries: [], parentGoalId: null },
-        { id: 'goal-peace', title: 'Daily Presence', color: '#8b5cf6', icon: '🧘', description: 'Mental clarity and focus', why: 'Stress reduction', goalType: 'continuous', targetValue: null, currentValue: 0, unit: null, createdAt: new Date().toISOString(), entries: [], parentGoalId: null },
+        { id: 'goal-peace', title: 'Daily Presence', color: '#8b5cf6', icon: '🧘', description: 'Mental clarity and focus', why: 'Stress reduction', goalType: 'directional', targetValue: null, currentValue: 0, unit: null, createdAt: new Date().toISOString(), entries: [], parentGoalId: null },
     ];
 
     const habits: Habit[] = [
