@@ -5,6 +5,8 @@
 
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useTasks, useProjects, useGoals } from '../../hooks/useStore';
+import { SmartFilter } from '../../components/SmartFilter';
+import type { FilterGroupConfig } from '../../components/SmartFilter';
 import type { Task, Subtask, TaskPriority, GoalLink } from '../../types';
 import { calcPressureScore, getPressureLevel, getPressureLabel } from '../../services/pressureScore';
 import { seedDemoData } from '../../services/seeder';
@@ -307,21 +309,9 @@ export default function TasksPage() {
     const [selectedFilterProjects, setSelectedFilterProjects] = useState<string[]>([]);
     const [selectedFilterGoals, setSelectedFilterGoals] = useState<string[]>([]);
     const [selectedFilterTags, setSelectedFilterTags] = useState<string[]>([]);
-    const [showFilters, setShowFilters] = useState<'status' | 'projects' | 'goals' | 'tags' | null>(null);
+    const [showFilters, setShowFilters] = useState<string | null>(null);
 
     useKeyboardShortcut('n', () => { resetForm(); setShowForm(true); });
-    const filterRef = useRef<HTMLDivElement>(null);
-
-    // Close filters on click outside
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
-                setShowFilters(null);
-            }
-        }
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
     const [showForm, setShowForm] = useState(false);
     const [editingTask, setEditingTask] = useState<Task | null>(null);
     const [animatingTaskIds, setAnimatingTaskIds] = useState<Set<string>>(new Set());
@@ -412,6 +402,73 @@ export default function TasksPage() {
                              (selectedFilterGoals.length > 0 ? 1 : 0) + 
                              (selectedFilterTags.length > 0 ? 1 : 0) +
                              (filterStatus !== 'all' ? 1 : 0);
+
+    const filterGroups: FilterGroupConfig[] = [
+        {
+            id: 'status',
+            type: 'single',
+            selected: filterStatus,
+            onSelect: (v) => setFilterStatus(v as FilterType),
+            getTriggerLabel: (v) => v as string,
+            suffixText: ' tasks ',
+            options: (['all', 'active', 'completed'] as FilterType[]).map(s => ({
+                id: s,
+                label: s.charAt(0).toUpperCase() + s.slice(1)
+            }))
+        },
+        {
+            id: 'projects',
+            type: 'multiple',
+            selected: selectedFilterProjects,
+            onSelect: (v) => setSelectedFilterProjects(v as string[]),
+            prefixText: 'in ',
+            getTriggerLabel: (v) => {
+                const arr = v as string[];
+                if (arr.length === 0) return 'any project';
+                if (arr.length === 1) return projects.find(p => p.id === arr[0])?.name || 'Project';
+                return `${arr.length} nodes`;
+            },
+            options: projects.map(p => ({
+                id: p.id,
+                label: p.name,
+                color: p.color
+            }))
+        },
+        {
+            id: 'goals',
+            type: 'multiple',
+            selected: selectedFilterGoals,
+            onSelect: (v) => setSelectedFilterGoals(v as string[]),
+            prefixText: ' aiming for ',
+            getTriggerLabel: (v) => {
+                const arr = v as string[];
+                if (arr.length === 0) return 'all goals';
+                if (arr.length === 1) return goals.find(g => g.id === arr[0])?.title || 'Goal';
+                return `${arr.length} targets`;
+            },
+            options: goals.map(g => ({
+                id: g.id,
+                label: <>{g.icon} {g.title}</>
+            }))
+        },
+        {
+            id: 'tags',
+            type: 'multiple',
+            selected: selectedFilterTags,
+            onSelect: (v) => setSelectedFilterTags(v as string[]),
+            prefixText: ' with ',
+            getTriggerLabel: (v) => {
+                const arr = v as string[];
+                if (arr.length === 0) return 'any tags';
+                if (arr.length === 1) return `#${arr[0]}`;
+                return `${arr.length} tags`;
+            },
+            options: allTags.map(tag => ({
+                id: tag,
+                label: `#${tag}`
+            }))
+        }
+    ];
 
     function resetForm() {
         setFormTitle('');
@@ -558,123 +615,19 @@ export default function TasksPage() {
                 <SmartInput onSubmit={handleSmartInputSubmit} placeholder="Add a task... (e.g., 'Review presentation tomorrow 10am !high')" />
             </div>
 
-            {/* Smart Sentence Filter */}
-            <div className="tasks-filter-sentence" ref={filterRef}>
-                <span className="sentence-text">Showing </span>
-                
-                {/* Status Trigger */}
-                <span className="sentence-trigger-wrap">
-                    <button 
-                        className="sentence-trigger"
-                        onClick={() => setShowFilters(showFilters === 'status' ? null : 'status')}
-                    >
-                        {filterStatus}
-                    </button>
-                    {showFilters === 'status' && (
-                        <div className="sentence-mini-popover glass animate-pop-in">
-                            {(['all', 'active', 'completed'] as FilterType[]).map(s => (
-                                <button key={s} className={`mini-opt ${filterStatus === s ? 'mini-opt--active' : ''}`} onClick={() => { setFilterStatus(s); setShowFilters(null); }}>
-                                    {s.charAt(0).toUpperCase() + s.slice(1)}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </span>
-
-                <span className="sentence-text"> tasks </span>
-
-                {/* Projects Trigger */}
-                <span className="sentence-text">in </span>
-                <span className="sentence-trigger-wrap">
-                    <button 
-                        className={`sentence-trigger ${selectedFilterProjects.length > 0 ? 'sentence-trigger--active' : ''}`}
-                        onClick={() => setShowFilters(showFilters === 'projects' ? null : 'projects')}
-                    >
-                        {selectedFilterProjects.length === 0 ? 'any project' : 
-                         selectedFilterProjects.length === 1 ? projects.find(p => p.id === selectedFilterProjects[0])?.name :
-                         `${selectedFilterProjects.length} nodes`}
-                    </button>
-                    {showFilters === 'projects' && (
-                        <div className="sentence-mini-popover glass animate-pop-in">
-                            {projects.map(p => (
-                                <button 
-                                    key={p.id} 
-                                    className={`mini-opt ${selectedFilterProjects.includes(p.id) ? 'mini-opt--active' : ''}`}
-                                    onClick={() => setSelectedFilterProjects(prev => 
-                                        prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id]
-                                    )}
-                                >
-                                    <span className="mini-dot" style={{ background: p.color }} /> {p.name}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </span>
-
-                {/* Goals Trigger */}
-                <span className="sentence-text"> aiming for </span>
-                <span className="sentence-trigger-wrap">
-                    <button 
-                        className={`sentence-trigger ${selectedFilterGoals.length > 0 ? 'sentence-trigger--active' : ''}`}
-                        onClick={() => setShowFilters(showFilters === 'goals' ? null : 'goals')}
-                    >
-                        {selectedFilterGoals.length === 0 ? 'all goals' : 
-                         selectedFilterGoals.length === 1 ? goals.find(g => g.id === selectedFilterGoals[0])?.title :
-                         `${selectedFilterGoals.length} targets`}
-                    </button>
-                    {showFilters === 'goals' && (
-                        <div className="sentence-mini-popover glass animate-pop-in">
-                            {goals.map(g => (
-                                <button 
-                                    key={g.id} 
-                                    className={`mini-opt ${selectedFilterGoals.includes(g.id) ? 'mini-opt--active' : ''}`}
-                                    onClick={() => setSelectedFilterGoals(prev => 
-                                        prev.includes(g.id) ? prev.filter(id => id !== g.id) : [...prev, g.id]
-                                    )}
-                                >
-                                    {g.icon} {g.title}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </span>
-
-                {/* Tags Trigger */}
-                <span className="sentence-text"> with </span>
-                <span className="sentence-trigger-wrap">
-                    <button 
-                        className={`sentence-trigger ${selectedFilterTags.length > 0 ? 'sentence-trigger--active' : ''}`}
-                        onClick={() => setShowFilters(showFilters === 'tags' ? null : 'tags')}
-                    >
-                        {selectedFilterTags.length === 0 ? 'any tags' : 
-                         selectedFilterTags.length === 1 ? `#${selectedFilterTags[0]}` :
-                         `${selectedFilterTags.length} tags`}
-                    </button>
-                    {showFilters === 'tags' && (
-                        <div className="sentence-mini-popover glass animate-pop-in">
-                            {allTags.map(tag => (
-                                <button 
-                                    key={tag} 
-                                    className={`mini-opt ${selectedFilterTags.includes(tag) ? 'mini-opt--active' : ''}`}
-                                    onClick={() => toggleTagFilter(tag)}
-                                >
-                                    #{tag}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </span>
-
-                {activeFilterCount > 0 && (
-                    <button className="sentence-clear" onClick={() => {
-                        setSelectedFilterProjects([]);
-                        setSelectedFilterGoals([]);
-                        setSelectedFilterTags([]);
-                        setFilterStatus('all');
-                        setShowFilters(null);
-                    }} title="Reset Filters">×</button>
-                )}
-            </div>
+            <SmartFilter
+                groups={filterGroups}
+                activeGroup={showFilters}
+                onToggleGroup={setShowFilters}
+                showClearAll={activeFilterCount > 0}
+                onClearAll={() => {
+                    setSelectedFilterProjects([]);
+                    setSelectedFilterGoals([]);
+                    setSelectedFilterTags([]);
+                    setFilterStatus('all');
+                    setShowFilters(null);
+                }}
+            />
 
             {/* Task List */}
             <div className="tasks-list">

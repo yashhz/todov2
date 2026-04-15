@@ -4,16 +4,21 @@
 
 .card {
   position: relative;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: var(--radius-md);
+  background: var(--surface-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
   overflow: visible;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
 }
 
 .card--completed {
-  background: rgba(255, 255, 255, 0.01);
+  background: rgba(255, 255, 255, 0.015);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-color: rgba(255, 255, 255, 0.03);
 }
 
 .card--completed .card__border-segment {
@@ -82,7 +87,9 @@
 
 .card:hover:not(.card--no-hover) {
   transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: var(--surface-glass-hover);
+  border-color: var(--surface-border-hover);
+  box-shadow: var(--shadow-md);
 }
 
 .card--with-border-segments:hover:not(.card--no-hover) {

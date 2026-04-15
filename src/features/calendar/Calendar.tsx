@@ -6,7 +6,8 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { useTasks } from '../../hooks/useStore';
 import { formatDateStr } from '../../services/recurrence';
 import { SmartInput } from '../../components/SmartInput';
-import type { ParsedCommand } from '../../types';
+import type { Task, ParsedCommand } from '../../types';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import './Calendar.css';
 
 import { fetchGoogleEvents, hasGCalToken, createGoogleEventFromTask, updateGoogleEvent } from '../../services/googleCalendar';

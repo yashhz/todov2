@@ -60,7 +60,6 @@ export function seedDemoData() {
         categories: [], // legacy
         tags: [],       // legacy
         timeBlocks: [],
-        intentions: [],
     };
 
     saveState(state);

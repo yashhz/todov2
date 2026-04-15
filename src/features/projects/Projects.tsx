@@ -3,13 +3,15 @@
    Glassmorphism, Bento-style layout, Natural Motion
    ═══════════════════════════════════════════════════════════ */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProjects, useTasks, useHabits, useGoals } from '../../hooks/useStore';
 import { useKeyboardShortcut } from '../../hooks/useKeyboardShortcut';
 import type { Project, ProjectStatus } from '../../types';
 import Modal from '../../components/Modal';
 import { Card } from '../../components/Card';
+import { SmartFilter } from '../../components/SmartFilter';
+import type { FilterGroupConfig } from '../../components/SmartFilter';
 import { Edit, Trash2 } from 'lucide-react';
 import './Projects.css';
 
@@ -62,18 +64,7 @@ export default function ProjectsPage() {
     const [selectedFilterGoals, setSelectedFilterGoals] = useState<string[]>([]);
 
     useKeyboardShortcut('n', () => { resetForm(); setShowForm(true); });
-    const [showFilters, setShowFilters] = useState<'status' | 'goals' | null>(null);
-    const filterRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
-                setShowFilters(null);
-            }
-        }
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    const [showFilters, setShowFilters] = useState<string | null>(null);
 
     // Form state
     const [formName, setFormName] = useState('');
@@ -146,6 +137,38 @@ export default function ProjectsPage() {
         return { total: projectTasks.length, done, habits: projectHabits.length };
     }
 
+    const filterGroups: FilterGroupConfig[] = [
+        {
+            id: 'status',
+            type: 'single',
+            selected: statusFilter,
+            onSelect: (v) => setStatusFilter(v as ProjectStatus | 'all'),
+            getTriggerLabel: (v) => v as string,
+            suffixText: ' projects ',
+            options: (['all', 'active', 'paused', 'archived'] as const).map(s => ({
+                id: s,
+                label: s.charAt(0).toUpperCase() + s.slice(1)
+            }))
+        },
+        {
+            id: 'goals',
+            type: 'multiple',
+            selected: selectedFilterGoals,
+            onSelect: (v) => setSelectedFilterGoals(v as string[]),
+            prefixText: 'aiming for ',
+            getTriggerLabel: (v) => {
+                const arr = v as string[];
+                if (arr.length === 0) return 'any goal';
+                if (arr.length === 1) return goals.find(g => g.id === arr[0])?.title || 'Goal';
+                return `${arr.length} goals`;
+            },
+            options: goals.map(g => ({
+                id: g.id,
+                label: <>{g.icon} {g.title}</>
+            }))
+        }
+    ];
+
     return (
         <div className="projects-page page-enter">
             {/* Minimal Header */}
@@ -159,67 +182,18 @@ export default function ProjectsPage() {
                 </button>
             </header>
 
-            {/* Smart Sentence Filter */}
-            <div className="tasks-filter-sentence" ref={filterRef} style={{ marginBottom: 'var(--sp-4)' }}>
-                <span className="sentence-text">Showing </span>
-                
-                {/* Status Trigger */}
-                <span className="sentence-trigger-wrap">
-                    <button 
-                        className={`sentence-trigger ${statusFilter !== 'all' ? 'sentence-trigger--active' : ''}`}
-                        onClick={() => setShowFilters(showFilters === 'status' ? null : 'status')}
-                    >
-                        {statusFilter === 'all' ? 'all' : statusFilter}
-                    </button>
-                    {showFilters === 'status' && (
-                        <div className="sentence-mini-popover glass animate-pop-in">
-                            {(['all', 'active', 'paused', 'archived'] as const).map(s => (
-                                <button key={s} className={`mini-opt ${statusFilter === s ? 'mini-opt--active' : ''}`} onClick={() => { setStatusFilter(s); setShowFilters(null); }}>
-                                    {s.charAt(0).toUpperCase() + s.slice(1)}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </span>
-
-                <span className="sentence-text"> projects </span>
-
-                {/* Goals Trigger */}
-                <span className="sentence-text">aiming for </span>
-                <span className="sentence-trigger-wrap">
-                    <button 
-                        className={`sentence-trigger ${selectedFilterGoals.length > 0 ? 'sentence-trigger--active' : ''}`}
-                        onClick={() => setShowFilters(showFilters === 'goals' ? null : 'goals')}
-                    >
-                        {selectedFilterGoals.length === 0 ? 'any goal' : 
-                         selectedFilterGoals.length === 1 ? goals.find(g => g.id === selectedFilterGoals[0])?.title :
-                         `${selectedFilterGoals.length} goals`}
-                    </button>
-                    {showFilters === 'goals' && (
-                        <div className="sentence-mini-popover glass animate-pop-in">
-                            {goals.map(g => (
-                                <button 
-                                    key={g.id} 
-                                    className={`mini-opt ${selectedFilterGoals.includes(g.id) ? 'mini-opt--active' : ''}`}
-                                    onClick={() => setSelectedFilterGoals(prev => 
-                                        prev.includes(g.id) ? prev.filter(id => id !== g.id) : [...prev, g.id]
-                                    )}
-                                >
-                                    {g.icon} {g.title}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </span>
-
-                {activeFilterCount > 0 && (
-                    <button className="sentence-clear" onClick={() => {
-                        setStatusFilter('all');
-                        setSelectedFilterGoals([]);
-                        setShowFilters(null);
-                    }} title="Reset Filters">×</button>
-                )}
-            </div>
+            <SmartFilter
+                style={{ marginBottom: 'var(--sp-4)' }}
+                groups={filterGroups}
+                activeGroup={showFilters}
+                onToggleGroup={setShowFilters}
+                showClearAll={activeFilterCount > 0}
+                onClearAll={() => {
+                    setStatusFilter('all');
+                    setSelectedFilterGoals([]);
+                    setShowFilters(null);
+                }}
+            />
 
             {/* Project grid */}
             <main className="projects-grid">
@@ -345,7 +319,7 @@ export default function ProjectsPage() {
 
                         <div className="m-form__section">
                             <span className="m-form__section-label">Identity</span>
-                            <div className="m-form__row" style={{background: 'rgba(255,255,255,0.03)', padding: '6px', borderRadius: '24px', overflowX: 'auto', flexWrap: 'nowrap', maxWidth: '100%', WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none'}}>
+                            <div className="m-form__row m-form__row--scrollable" style={{background: 'rgba(255,255,255,0.03)', padding: '6px', borderRadius: '24px', maxWidth: '100%'}}>
                                 {PROJECT_ICON_IDS.map(iconId => (
                                     <button
                                         key={iconId}
@@ -362,7 +336,7 @@ export default function ProjectsPage() {
                                     </button>
                                 ))}
                             </div>
-                            <div className="m-form__row" style={{background: 'rgba(255,255,255,0.03)', padding: '8px', borderRadius: '24px', overflowX: 'auto', flexWrap: 'nowrap', maxWidth: '100%', gap: '12px', marginTop: '4px'}}>
+                            <div className="m-form__row m-form__row--scrollable" style={{background: 'rgba(255,255,255,0.03)', padding: '8px', borderRadius: '24px', maxWidth: '100%', gap: '12px', marginTop: '4px'}}>
                                 {PROJECT_COLORS.map(color => (
                                     <button
                                         key={color}

@@ -3,15 +3,16 @@
    ═══════════════════════════════════════════════════════════ */
 
 import { NavLink } from 'react-router-dom';
+import { LayoutDashboard, Calendar as CalendarIcon, CheckSquare, Target, Repeat, FolderKanban, Settings, Plus } from 'lucide-react';
 import './Sidebar.css';
 
 const NAV_ITEMS = [
-    { path: '/',         icon: '◉', label: 'Dashboard' },
-    { path: '/calendar', icon: '📅', label: 'Calendar' },
-    { path: '/tasks',    icon: '☐', label: 'Tasks' },
-    { path: '/goals',    icon: '◎', label: 'Goals' },
-    { path: '/habits',   icon: '↻', label: 'Habits' },
-    { path: '/projects', icon: '▣', label: 'Projects' },
+    { path: '/',         icon: <LayoutDashboard size={18} strokeWidth={2.2} />, label: 'Dashboard' },
+    { path: '/calendar', icon: <CalendarIcon size={18} strokeWidth={2.2} />, label: 'Calendar' },
+    { path: '/tasks',    icon: <CheckSquare size={18} strokeWidth={2.2} />, label: 'Tasks' },
+    { path: '/goals',    icon: <Target size={18} strokeWidth={2.2} />, label: 'Goals' },
+    { path: '/habits',   icon: <Repeat size={18} strokeWidth={2.2} />, label: 'Habits' },
+    { path: '/projects', icon: <FolderKanban size={18} strokeWidth={2.2} />, label: 'Projects' },
 ];
 
 export default function Sidebar({ onOpenCmd }: { onOpenCmd: () => void }) {
@@ -55,7 +56,7 @@ export default function Sidebar({ onOpenCmd }: { onOpenCmd: () => void }) {
                             `sidebar__link ${isActive ? 'sidebar__link--active' : ''}`
                         }
                     >
-                        <span className="sidebar__link-icon">⚙</span>
+                        <span className="sidebar__link-icon"><Settings size={18} strokeWidth={2.2} /></span>
                         <span className="sidebar__link-label">Settings</span>
                     </NavLink>
                 </nav>
@@ -66,7 +67,7 @@ export default function Sidebar({ onOpenCmd }: { onOpenCmd: () => void }) {
                     onClick={onOpenCmd}
                     title="Quick Add (Ctrl+K)"
                 >
-                    <span className="sidebar__cmd-icon">⌘</span>
+                    <span className="sidebar__cmd-icon"><Plus size={16} strokeWidth={2.5} /></span>
                     <span className="sidebar__cmd-label">Quick Add</span>
                     <span className="sidebar__cmd-kbd">K</span>
                 </button>

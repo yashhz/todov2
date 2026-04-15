@@ -2,12 +2,12 @@
    CUSTOM HOOKS — Feature-specific hooks wrapping context
    ═══════════════════════════════════════════════════════════ */
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { v4 as uuid } from 'uuid';
 import { useAppContext } from '../contexts/AppContext';
 import type {
     Task, Subtask, Goal, ProgressEntry, Habit, Project, ProjectStatus,
-    TaskPriority, HabitFrequency, EnergyRating, TimeBlock, DailyIntention,
+    TaskPriority, HabitFrequency, EnergyRating, TimeBlock,
     GoalLink,
 } from '../types';
 import { getTodayStr, isHabitDueOnDate, isHabitCompletedOnDate } from '../services/recurrence';
@@ -168,6 +168,31 @@ export function useGoals() {
         return state.goals.filter(g => g.parentGoalId === parentId);
     }, [state.goals]);
 
+    // Precalculate task statistics keyed by goal ID to avoid O(N*M) filtering
+    const { state: appState } = useAppContext();
+    const taskStatsByGoal = useMemo(() => {
+        const stats = new Map<string, { total: number, completed: number }>();
+        for (const task of appState.tasks) {
+            const goalIds = new Set<string>();
+            if (task.linkedGoalId) goalIds.add(task.linkedGoalId);
+            if (task.goalLinks) {
+                for (const link of task.goalLinks) {
+                    goalIds.add(link.goalId);
+                }
+            }
+            for (const gId of goalIds) {
+                let stat = stats.get(gId);
+                if (!stat) {
+                    stat = { total: 0, completed: 0 };
+                    stats.set(gId, stat);
+                }
+                stat.total++;
+                if (task.completed) stat.completed++;
+            }
+        }
+        return stats;
+    }, [appState.tasks]);
+
     const getAggregateProgress = useCallback((goalId: string): {
         current: number; target: number; percent: number; isUmbrella: boolean;
     } => {
@@ -181,11 +206,10 @@ export function useGoals() {
             }
             if (goal.goalType === 'milestone') {
                  // Derived from tasks
-                 const linkedTasks = state.tasks.filter(t => t.linkedGoalId === goalId || t.goalLinks.some(l => l.goalId === goalId));
-                 if (linkedTasks.length === 0) return { current: 0, target: 0, percent: 0, isUmbrella: true };
-                 const completed = linkedTasks.filter(t => t.completed).length;
-                 const percent = (completed / linkedTasks.length) * 100;
-                 return { current: completed, target: linkedTasks.length, percent, isUmbrella: false };
+                 const stat = taskStatsByGoal.get(goalId);
+                 if (!stat || stat.total === 0) return { current: 0, target: 0, percent: 0, isUmbrella: true };
+                 const percent = (stat.completed / stat.total) * 100;
+                 return { current: stat.completed, target: stat.total, percent, isUmbrella: false };
             }
             // Measurable
             const percent = goal.targetValue > 0
@@ -205,10 +229,9 @@ export function useGoals() {
                  totalPercent += Math.min((child.currentValue / child.targetValue) * 100, 100);
                  validChildrenCount++;
              } else if (child.goalType === 'milestone') {
-                 const linkedTasks = state.tasks.filter(t => t.linkedGoalId === child.id || t.goalLinks.some(l => l.goalId === child.id));
-                 if (linkedTasks.length > 0) {
-                     const completed = linkedTasks.filter(t => t.completed).length;
-                     totalPercent += (completed / linkedTasks.length) * 100;
+                 const stat = taskStatsByGoal.get(child.id);
+                 if (stat && stat.total > 0) {
+                     totalPercent += (stat.completed / stat.total) * 100;
                      validChildrenCount++;
                  }
              }
@@ -220,7 +243,7 @@ export function useGoals() {
 
         const avgPercent = totalPercent / validChildrenCount;
         return { current: Math.round(avgPercent), target: 100, percent: avgPercent, isUmbrella: true };
-    }, [state.goals, state.tasks]);
+    }, [state.goals, taskStatsByGoal]);
 
     const getDaysSinceProgress = useCallback((goalId: string): number => {
         const goal = state.goals.find(g => g.id === goalId);
@@ -450,18 +473,3 @@ export function useTimeBlocks(date?: string) {
     return { blocks: filtered, allBlocks: blocks, addBlock, updateBlock, deleteBlock, toggleBlock, carryForward };
 }
 
-// ─── Intentions ──────────────────────────────────
-export function useIntentions() {
-    const { state, dispatch } = useAppContext();
-
-    const setIntention = useCallback((date: string, text: string) => {
-        const intention: DailyIntention = { date, text };
-        dispatch({ type: 'SET_INTENTION', payload: intention });
-    }, [dispatch]);
-
-    const getIntention = useCallback((date: string): string => {
-        return (state.intentions || []).find(i => i.date === date)?.text || '';
-    }, [state.intentions]);
-
-    return { setIntention, getIntention };
-}

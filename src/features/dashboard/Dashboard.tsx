@@ -63,39 +63,6 @@ function ArcProgress({ progress, color, size = 72 }: { progress: number; color: 
     );
 }
 
-// ─── Task row — lean, minimal ──────────────────────
-
-function TaskRow({ task, projectColor, onToggle }: { task: Task; projectColor: string; onToggle: () => void }) {
-    return (
-        <div className={`d-task-row ${task.completed ? 'd-task-row--done' : ''}`} onClick={onToggle}>
-            <div className={`d-task-check ${task.completed ? 'd-task-check--done' : ''}`}>
-                {task.completed && (
-                    <svg width="8" height="7" viewBox="0 0 8 7" fill="none">
-                        <path d="M1 3.5L3 5.5L7 1" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                )}
-            </div>
-
-            <div className="d-task-body">
-                <div className="d-task-main">
-                    <div className="d-task-bar" style={{ background: projectColor }} />
-                    <span className="d-task-title">{task.title}</span>
-                    {task.priority === 'high' && !task.completed && (
-                        <span className="d-task-high">high</span>
-                    )}
-                    {task.dueTime && !task.completed && (
-                        <span className="d-task-time">{formatTime12(task.dueTime)}</span>
-                    )}
-                </div>
-                {task.tags && task.tags.length > 0 && (
-                    <div className="d-task-tags">
-                        {task.tags.map(t => <span key={t} className="d-task-tag">#{t}</span>)}
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-}
 
 // ─── Today Timeline ────────────────────────────────
 function TimelineRow({ task, projectColor, onToggle }: { task: Task; projectColor: string; onToggle: () => void }) {
@@ -186,41 +153,32 @@ function PinnedGoal({ goal, progress, taskCount, onPinClick }: { goal: Goal; pro
                 </button>
             </div>
             <div className="d-anchor__body">
+                <div className="d-anchor__arc">
+                    <ArcProgress progress={progress} color={goal.color} size={64} />
+                    <div className="d-anchor__arc-label">
+                        <span className="d-anchor__arc-pct">{Math.round(progress)}</span>
+                        <span className="d-anchor__arc-sym">%</span>
+                    </div>
+                </div>
                 <div className="d-anchor__text">
-                    <h2 className="d-anchor__name">{goal.title}</h2>
+                    <h2 className="d-anchor__name">{goal.icon} {goal.title}</h2>
                     {goal.why && <p className="d-anchor__why">{goal.why}</p>}
                     <div className="d-anchor__stats">
                         <div className="d-anchor__stat">
-                            <p className="d-anchor__stat-label">Momentum</p>
-                            <p className="d-anchor__stat-val">
-                                {goal.entries.length}<span className="d-anchor__stat-unit"> entries</span>
-                            </p>
-                        </div>
-                        <div className="d-anchor__divider" />
-                        <div className="d-anchor__stat">
-                            <p className="d-anchor__stat-label">Tasks linked</p>
-                            <p className="d-anchor__stat-val">
-                                {taskCount}<span className="d-anchor__stat-unit"> moving it</span>
-                            </p>
+                            <p className="d-anchor__stat-label">Tasks</p>
+                            <p className="d-anchor__stat-val">{taskCount}</p>
                         </div>
                         {daysSince !== null && (
                             <>
                                 <div className="d-anchor__divider" />
                                 <div className="d-anchor__stat">
-                                    <p className="d-anchor__stat-label">Last logged</p>
+                                    <p className="d-anchor__stat-label">Since log</p>
                                     <p className="d-anchor__stat-val">
-                                        {daysSince === 0 ? 'today' : `${daysSince}d ago`}
+                                        {daysSince === 0 ? '0d' : `${daysSince}d`}
                                     </p>
                                 </div>
                             </>
                         )}
-                    </div>
-                </div>
-                <div className="d-anchor__arc">
-                    <ArcProgress progress={progress} color={goal.color} size={80} />
-                    <div className="d-anchor__arc-label">
-                        <span className="d-anchor__arc-pct">{Math.round(progress)}</span>
-                        <span className="d-anchor__arc-sym">%</span>
                     </div>
                 </div>
             </div>
@@ -300,7 +258,6 @@ export default function Dashboard() {
 
     // Data Filtering - Optimized useMemo
     const allTodayTasks  = useMemo(() => tasks.filter(t => t.dueDate === todayStr), [tasks, todayStr]);
-    const pendingTasks   = useMemo(() => allTodayTasks.filter(t => !t.completed), [allTodayTasks]);
     const completedTasks = useMemo(() => allTodayTasks.filter(t => t.completed), [allTodayTasks]);
     const overdueTasks   = useMemo(() => tasks.filter(t => t.dueDate && t.dueDate < todayStr && !t.completed), [tasks, todayStr]);
     const todayHabits    = useMemo(() => habits.filter(h => isHabitDueOnDate(h, todayState)), [habits, todayState]);
@@ -333,6 +290,14 @@ export default function Dashboard() {
         scored.sort((a, b) => b.count - a.count);
         return scored[0];
     }, [parentGoals, tasks, todayStr, prefs.pinnedGoalId]);
+
+    const anchorLinkedTasks = useMemo(() => {
+        if (!anchorGoal) return [];
+        return tasks.filter(t =>
+            t.goalLinks?.some(l => l.goalId === anchorGoal.goal.id) ||
+            t.linkedGoalId === anchorGoal.goal.id
+        );
+    }, [tasks, anchorGoal]);
 
     // Project lookup for task color bars
     function getProjectColor(task: Task): string {
@@ -459,36 +424,29 @@ export default function Dashboard() {
                          <SmartInput onSubmit={handleSmartInputSubmit} />
                     </div>
 
-                    {isVisible('anchor') && anchorGoal && (
-                        <PinnedGoal
-                            goal={anchorGoal.goal}
-                            progress={getAggregateProgress(anchorGoal.goal.id).percent}
-                            taskCount={anchorGoal.count}
-                            onPinClick={() => setConfigModal(true)}
-                        />
-                    )}
-
                     <div className="d-workspace">
                         {isVisible('tasks') && (
-                            <div className="d-col" style={{ gridColumn: '1 / -1', marginBottom: 'var(--sp-8)' }}>
+                            <div className="d-col">
                                 <div className="d-col__head">
                                     <span className="d-col__label">Today's Timeline</span>
                                     <span className="d-col__count">{completedTasks.length}/{allTodayTasks.length}</span>
                                 </div>
 
-                                {allTodayTasks.length === 0 ? (
-                                    <p className="d-empty">No tasks for today.</p>
-                                ) : (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                        {[...allTodayTasks].sort((a, b) => {
-                                            if (!a.dueTime) return 1;
-                                            if (!b.dueTime) return -1;
-                                            return a.dueTime.localeCompare(b.dueTime);
-                                        }).map(t => (
-                                            <TimelineRow key={t.id} task={t} projectColor={getProjectColor(t)} onToggle={() => toggleTask(t.id)} />
-                                        ))}
-                                    </div>
-                                )}
+                                <div className="d-col__scroll">
+                                    {allTodayTasks.length === 0 ? (
+                                        <p className="d-empty">No tasks for today.</p>
+                                    ) : (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                            {[...allTodayTasks].sort((a, b) => {
+                                                if (!a.dueTime) return 1;
+                                                if (!b.dueTime) return -1;
+                                                return a.dueTime.localeCompare(b.dueTime);
+                                            }).map(t => (
+                                                <TimelineRow key={t.id} task={t} projectColor={getProjectColor(t)} onToggle={() => toggleTask(t.id)} />
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
 
@@ -499,19 +457,21 @@ export default function Dashboard() {
                                     <span className="d-col__count">{doneHabitsCount}/{todayHabits.length}</span>
                                 </div>
 
-                                {todayHabits.length === 0 ? (
-                                    <p className="d-empty">No habits due today.</p>
-                                ) : (
-                                    todayHabits.map(h => (
-                                        <HabitRow
-                                            key={h.id}
-                                            habit={h}
-                                            weekDates={weekDates}
-                                            todayStr={todayStr}
-                                            onToggle={(date) => date === todayStr ? toggleHabitToday(h.id) : toggleHabit(h.id, date)}
-                                        />
-                                    ))
-                                )}
+                                <div className="d-col__scroll">
+                                    {todayHabits.length === 0 ? (
+                                        <p className="d-empty">No habits due today.</p>
+                                    ) : (
+                                        todayHabits.map(h => (
+                                            <HabitRow
+                                                key={h.id}
+                                                habit={h}
+                                                weekDates={weekDates}
+                                                todayStr={todayStr}
+                                                onToggle={(date) => date === todayStr ? toggleHabitToday(h.id) : toggleHabit(h.id, date)}
+                                            />
+                                        ))
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>
@@ -519,6 +479,15 @@ export default function Dashboard() {
 
                 {/* ── SIDEBAR ─────────────────────────────── */}
                 <aside className="d-sidebar">
+                    {isVisible('anchor') && anchorGoal && (
+                        <PinnedGoal
+                            goal={anchorGoal.goal}
+                            progress={getAggregateProgress(anchorGoal.goal.id).percent}
+                            taskCount={anchorGoal.count}
+                            onPinClick={() => setConfigModal(true)}
+                        />
+                    )}
+
                     {isVisible('score') && (
                         <div className="d-sidebar-block d-sidebar-block--score">
                             <p className="d-sidebar-label">Day score</p>
@@ -536,8 +505,7 @@ export default function Dashboard() {
                     {isVisible('linked') && anchorGoal && (
                         <div className="d-sidebar-block">
                             <p className="d-sidebar-label">Linked to anchor</p>
-                            {tasks
-                                .filter(t => t.goalLinks?.some(l => l.goalId === anchorGoal.goal.id) || t.linkedGoalId === anchorGoal.goal.id)
+                            {anchorLinkedTasks
                                 .slice(0, 10)
                                 .map(t => (
                                     <div key={t.id} className={`d-linked-task ${t.completed ? 'd-linked-task--done' : ''}`} onClick={() => toggleTask(t.id)}>
@@ -545,7 +513,7 @@ export default function Dashboard() {
                                         <span className="d-linked-task__title">{t.title}</span>
                                     </div>
                                 ))}
-                            {tasks.filter(t => t.goalLinks?.some(l => l.goalId === anchorGoal.goal.id) || t.linkedGoalId === anchorGoal.goal.id).length === 0 && (
+                            {anchorLinkedTasks.length === 0 && (
                                 <p className="d-empty" style={{ fontSize: '12px' }}>No tasks linked.</p>
                             )}
                         </div>
