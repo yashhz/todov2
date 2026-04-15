@@ -79,7 +79,7 @@ function DateNavigator({ selectedDate, onDateChange, habits }: { selectedDate: D
                 const prev = new Date(selectedDate);
                 prev.setDate(selectedDate.getDate() - 1);
                 onDateChange(prev);
-            }}><ChevronLeft size={16} /></button>
+            }} title="Previous date" aria-label="Previous date"><ChevronLeft size={16} /></button>
             
             <div className="dn-scroll" ref={scrollRef}>
                 {dates.map(d => {
@@ -119,7 +119,7 @@ function DateNavigator({ selectedDate, onDateChange, habits }: { selectedDate: D
                 const next = new Date(selectedDate);
                 next.setDate(selectedDate.getDate() + 1);
                 onDateChange(next);
-            }}><ChevronRight size={16} /></button>
+            }} title="Next date" aria-label="Next date"><ChevronRight size={16} /></button>
         </div>
     );
 }
@@ -459,10 +459,10 @@ export default function HabitsPage() {
                                 })()}
                                 actions={
                                     <>
-                                        <button className="card__action-btn" onClick={e => { e.stopPropagation(); openEdit(habit); }}>
+                                        <button className="card__action-btn" onClick={e => { e.stopPropagation(); openEdit(habit); }} title="Edit habit" aria-label="Edit habit">
                                             <Edit size={14} />
                                         </button>
-                                        <button className="card__action-btn card__action-btn--danger" onClick={e => { e.stopPropagation(); deleteHabit(habit.id); }}>
+                                        <button className="card__action-btn card__action-btn--danger" onClick={e => { e.stopPropagation(); deleteHabit(habit.id); }} title="Delete habit" aria-label="Delete habit">
                                             <Trash2 size={14} />
                                         </button>
                                     </>
