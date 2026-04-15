@@ -92,10 +92,10 @@ const PRIORITY_PATTERNS: { re: RegExp; value: ParsedPriority }[] = [
     { re: /(?:^|\s)(!{3,})(?:\s|$)/,  value: 'urgent' },
     { re: /(?:^|\s)(!{2})(?:\s|$)/,   value: 'high'   },
     { re: /(?:^|\s)(!{1})(?:\s|$)/,   value: 'medium' }, // Single ! is medium
-    { re: /\b!urgent\b/i,              value: 'urgent' },
-    { re: /\b!high\b/i,                value: 'high'   },
-    { re: /\b!medium\b/i,              value: 'medium' },
-    { re: /\b!low\b/i,                 value: 'low'    },
+    { re: /(?:^|\s)!urgent\b/i,        value: 'urgent' },
+    { re: /(?:^|\s)!high\b/i,          value: 'high'   },
+    { re: /(?:^|\s)!medium\b/i,        value: 'medium' },
+    { re: /(?:^|\s)!low\b/i,           value: 'low'    },
 ];
 
 // Duration: 2h, 30min, 1.5h, 2 hours, half hour, 1h30m, 1h 30min
