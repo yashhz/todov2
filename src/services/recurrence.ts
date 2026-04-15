@@ -58,14 +58,6 @@ export function getWeeklyCompletionCount(habit: Habit, referenceDate: Date): num
 }
 
 /**
- * Check if weekly frequency limit has been reached
- */
-export function isWeeklyLimitReached(habit: Habit, referenceDate: Date): boolean {
-    if (habit.frequency !== 'times_per_week') return false;
-    return getWeeklyCompletionCount(habit, referenceDate) >= habit.timesPerWeek;
-}
-
-/**
  * Calculate current streak for a habit
  */
 export function calculateStreak(habit: Habit): number {
