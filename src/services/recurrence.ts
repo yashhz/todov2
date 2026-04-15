@@ -46,7 +46,7 @@ export function isHabitCompletedOnDate(habit: Habit, dateStr: string): boolean {
 /**
  * Calculate how many times a habit has been completed this week
  */
-export function getWeeklyCompletionCount(habit: Habit, referenceDate: Date): number {
+function getWeeklyCompletionCount(habit: Habit, referenceDate: Date): number {
     const startOfWeek = getStartOfWeek(referenceDate);
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(endOfWeek.getDate() + 7);
