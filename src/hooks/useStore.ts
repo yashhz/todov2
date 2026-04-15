@@ -7,7 +7,7 @@ import { v4 as uuid } from 'uuid';
 import { useAppContext } from '../contexts/AppContext';
 import type {
     Task, Subtask, Goal, ProgressEntry, Habit, Project, ProjectStatus,
-    TaskPriority, HabitFrequency, EnergyRating, TimeBlock, DailyIntention,
+    TaskPriority, HabitFrequency, EnergyRating, TimeBlock,
     GoalLink,
 } from '../types';
 import { getTodayStr, isHabitDueOnDate, isHabitCompletedOnDate } from '../services/recurrence';
@@ -450,18 +450,3 @@ export function useTimeBlocks(date?: string) {
     return { blocks: filtered, allBlocks: blocks, addBlock, updateBlock, deleteBlock, toggleBlock, carryForward };
 }
 
-// ─── Intentions ──────────────────────────────────
-export function useIntentions() {
-    const { state, dispatch } = useAppContext();
-
-    const setIntention = useCallback((date: string, text: string) => {
-        const intention: DailyIntention = { date, text };
-        dispatch({ type: 'SET_INTENTION', payload: intention });
-    }, [dispatch]);
-
-    const getIntention = useCallback((date: string): string => {
-        return (state.intentions || []).find(i => i.date === date)?.text || '';
-    }, [state.intentions]);
-
-    return { setIntention, getIntention };
-}
