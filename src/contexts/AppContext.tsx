@@ -57,8 +57,15 @@ function appReducer(state: AppState, action: AppAction): AppState {
         // ── Goals ──────────────────────────────────────
         case 'ADD_GOAL':
             return { ...state, goals: [...state.goals, action.payload] };
-        case 'UPDATE_GOAL':
-            return { ...state, goals: state.goals.map(g => g.id === action.payload.id ? action.payload : g) };
+        case 'UPDATE_GOAL': {
+            const targetIndex = state.goals.findIndex(g => g.id === action.payload.id);
+            if (targetIndex === -1) return state;
+
+            const newGoals = [...state.goals];
+            newGoals[targetIndex] = action.payload;
+
+            return { ...state, goals: newGoals };
+        }
         case 'DELETE_GOAL': {
             const deletedGoalId = action.payload;
             return {
@@ -81,45 +88,53 @@ function appReducer(state: AppState, action: AppAction): AppState {
             };
         }
         case 'LOG_PROGRESS': {
-            const targetGoal = state.goals.find(g => g.id === action.payload.goalId);
+            const targetIndex = state.goals.findIndex(g => g.id === action.payload.goalId);
+            if (targetIndex === -1) return state;
+            const targetGoal = state.goals[targetIndex];
             // Block contributions to milestone/continuous goals — they derive progress from children/tasks/habits
-            if (!targetGoal || targetGoal.goalType !== 'measurable') return state;
+            if (targetGoal.goalType !== 'measurable') return state;
+
+            const updatedGoal = {
+                ...targetGoal,
+                currentValue: Math.max(0, targetGoal.currentValue + action.payload.entry.value),
+                entries: [...targetGoal.entries, action.payload.entry],
+            };
+
+            const newGoals = [...state.goals];
+            newGoals[targetIndex] = updatedGoal;
+
             return {
                 ...state,
-                goals: state.goals.map(g =>
-                    g.id === action.payload.goalId
-                        ? {
-                            ...g,
-                            currentValue: Math.max(0, g.currentValue + action.payload.entry.value),
-                            entries: [...g.entries, action.payload.entry],
-                        }
-                        : g
-                ),
+                goals: newGoals,
             };
         }
 
         case 'LOG_PROGRESS_CORRECTION': {
             const { goalId, delta, note } = action.payload;
-            const correctionTarget = state.goals.find(g => g.id === goalId);
+            const targetIndex = state.goals.findIndex(g => g.id === goalId);
+            if (targetIndex === -1) return state;
+            const correctionTarget = state.goals[targetIndex];
             // Block corrections to milestone/continuous goals
-            if (!correctionTarget || correctionTarget.goalType !== 'measurable') return state;
+            if (correctionTarget.goalType !== 'measurable') return state;
             const correctionEntry = {
                 id: uuid(),
                 date: new Date().toISOString(),
                 value: delta,
                 note: note || 'Manual correction',
             };
+
+            const updatedGoal = {
+                ...correctionTarget,
+                currentValue: Math.max(0, correctionTarget.currentValue + delta),
+                entries: [...correctionTarget.entries, correctionEntry],
+            };
+
+            const newGoals = [...state.goals];
+            newGoals[targetIndex] = updatedGoal;
+
             return {
                 ...state,
-                goals: state.goals.map(g =>
-                    g.id === goalId
-                        ? {
-                            ...g,
-                            currentValue: Math.max(0, g.currentValue + delta),
-                            entries: [...g.entries, correctionEntry],
-                        }
-                        : g
-                ),
+                goals: newGoals,
             };
         }
 
