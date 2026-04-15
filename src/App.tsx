@@ -16,6 +16,7 @@ import ProjectsPage from './features/projects/Projects';
 import ProjectDetail from './features/projects/ProjectDetail';
 import SettingsPage from './features/settings/Settings';
 import CalendarView from './features/calendar/Calendar';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 function AppShell() {
     const [cmdOpen, setCmdOpen] = useState(false);
@@ -54,10 +55,12 @@ function AppShell() {
 
 export default function App() {
     return (
+        <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || 'your-google-client-id.apps.googleusercontent.com'}>
         <AppProvider>
             <BrowserRouter>
                 <AppShell />
             </BrowserRouter>
         </AppProvider>
+        </GoogleOAuthProvider>
     );
 }
