@@ -148,7 +148,7 @@ function PinnedGoal({ goal, progress, taskCount, onPinClick }: { goal: Goal; pro
         <div className="d-anchor">
             <div className="d-anchor__header">
                 <p className="d-anchor__label">Today's anchor</p>
-                <button className="d-anchor__pin-btn" onClick={onPinClick} title="Change anchor">
+                <button className="d-anchor__pin-btn" onClick={onPinClick} title="Change anchor" aria-label="Change anchor goal">
                     <Star size={12} />
                 </button>
             </div>
@@ -403,7 +403,7 @@ export default function Dashboard() {
                             : `${leftThings} thing${leftThings !== 1 ? 's' : ''} left`
                         }
                     </div>
-                    <button className="d-topbar__config" onClick={() => setConfigModal(true)}>
+                    <button className="d-topbar__config" onClick={() => setConfigModal(true)} aria-label="Dashboard settings">
                         <Settings size={16} />
                     </button>
                 </div>
@@ -544,6 +544,7 @@ export default function Dashboard() {
                                                         <button
                                                             className="d-goal-row__log"
                                                             onClick={() => { setProgressModal(g.id); setProgressInput(''); }}
+                                                            aria-label={`Log progress for ${g.title}`}
                                                         >
                                                             +
                                                         </button>
