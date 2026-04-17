@@ -6,7 +6,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { useTasks } from '../../hooks/useStore';
 import { formatDateStr } from '../../services/recurrence';
 import { SmartInput } from '../../components/SmartInput';
-import type { Task, ParsedCommand } from '../../types';
+import type { ParsedCommand } from '../../types';
 import { Trash2, X } from 'lucide-react';
 import Modal from '../../components/Modal';
 import './Calendar.css';
