@@ -99,7 +99,7 @@ export default function ProjectDetail() {
                         {project.description && <p className="pd2-hero__desc">{project.description}</p>}
                     </div>
                 </div>
-                <button className="pd2-edit-btn" onClick={openEdit} title="Edit">
+                <button className="pd2-edit-btn" onClick={openEdit} title="Edit" aria-label="Edit project">
                     <Pencil size={13} />
                 </button>
             </div>
