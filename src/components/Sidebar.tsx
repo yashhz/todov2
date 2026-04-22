@@ -66,6 +66,7 @@ export default function Sidebar({ onOpenCmd }: { onOpenCmd: () => void }) {
                     className="sidebar__cmd-btn"
                     onClick={onOpenCmd}
                     title="Quick Add (Ctrl+K)"
+                    aria-label="Quick Add (Ctrl+K)"
                 >
                     <span className="sidebar__cmd-icon"><Plus size={16} strokeWidth={2.5} /></span>
                     <span className="sidebar__cmd-label">Quick Add</span>
