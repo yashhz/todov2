@@ -323,6 +323,7 @@ export default function CalendarView() {
                                    onClick={refreshGoogleEvents}
                                    disabled={isLoading}
                                    title="Refresh Google Calendar events"
+                                   aria-label="Refresh Google Calendar events"
                                >
                                    {isLoading ? '↻' : '↻'}
                                </button>

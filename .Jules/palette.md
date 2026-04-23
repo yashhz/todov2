@@ -1,0 +1,3 @@
+## 2025-04-23 - Add ARIA labels to icon-only action buttons
+**Learning:** During UI updates or adding new icon-based actions, `aria-label` is often missed even if `title` is included, which negatively affects screen reader accessibility. I noticed this pattern across several `card__action-btn`s in component loops (Habits, Projects, Calendar).
+**Action:** Always verify that every icon-only button specifically has an `aria-label` attribute, even if it has a tooltip or `title` attribute, to ensure full accessibility support.

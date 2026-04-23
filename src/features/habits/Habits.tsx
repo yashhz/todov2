@@ -459,10 +459,10 @@ export default function HabitsPage() {
                                 })()}
                                 actions={
                                     <>
-                                        <button className="card__action-btn" onClick={e => { e.stopPropagation(); openEdit(habit); }}>
+                                        <button className="card__action-btn" onClick={e => { e.stopPropagation(); openEdit(habit); }} aria-label="Edit habit" title="Edit habit">
                                             <Edit size={14} />
                                         </button>
-                                        <button className="card__action-btn card__action-btn--danger" onClick={e => { e.stopPropagation(); deleteHabit(habit.id); }}>
+                                        <button className="card__action-btn card__action-btn--danger" onClick={e => { e.stopPropagation(); deleteHabit(habit.id); }} aria-label="Delete habit" title="Delete habit">
                                             <Trash2 size={14} />
                                         </button>
                                     </>
