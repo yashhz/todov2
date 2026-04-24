@@ -127,7 +127,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({ onSubmit, placeholder = 
                     {parsed.tokens.map((token, i) => (
                         <span key={i} className="smart-chip" style={{ '--chip-color': TOKEN_COLORS[token.type] } as React.CSSProperties}>
                             {tokenLabel(token, goals, projects)}
-                            <button className="smart-chip-dismiss" onClick={(e) => { e.stopPropagation(); dismissToken(token.raw); }}>×</button>
+                            <button className="smart-chip-dismiss" aria-label="Remove token" onClick={(e) => { e.stopPropagation(); dismissToken(token.raw); }}>×</button>
                         </span>
                     ))}
                 </div>

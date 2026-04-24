@@ -963,7 +963,7 @@ export default function TasksPage() {
                                         : 'Pick date'}
                                 </button>
                                 {formDate && (
-                                    <button type="button" className="m-form__clear-date" onClick={() => { setFormDate(''); setShowCalendar(false); }} style={{background:'transparent', border:'none', color:'rgba(255,255,255,0.25)', cursor:'pointer'}}>×</button>
+                                    <button type="button" aria-label="Clear date" className="m-form__clear-date" onClick={() => { setFormDate(''); setShowCalendar(false); }} style={{background:'transparent', border:'none', color:'rgba(255,255,255,0.25)', cursor:'pointer'}}>×</button>
                                 )}
                             </div>
 
@@ -1032,7 +1032,7 @@ export default function TasksPage() {
                                     return (
                                         <span className="m-form__pill m-form__pill--sm" style={{ background: p.color + '18', borderColor: p.color + '55', color: p.color }}>
                                             {p.icon} {p.name}
-                                            <button type="button" onClick={() => setFormProjectId(null)} style={{background:'transparent', border:'none', color:'inherit', marginLeft:'6px', cursor:'pointer'}}>×</button>
+                                            <button type="button" aria-label="Clear project" onClick={() => setFormProjectId(null)} style={{background:'transparent', border:'none', color:'inherit', marginLeft:'6px', cursor:'pointer'}}>×</button>
                                         </span>
                                     );
                                 })()}
@@ -1086,7 +1086,7 @@ export default function TasksPage() {
                                     return (
                                         <span key={link.goalId} className="m-form__pill m-form__pill--sm" style={{color:'var(--text-secondary)'}}>
                                             {g.icon} {g.title}
-                                            <button type="button" onClick={() => setFormGoalLinks(formGoalLinks.filter(l => l.goalId !== link.goalId))} style={{background:'transparent', border:'none', color:'inherit', marginLeft:'6px', cursor:'pointer'}}>×</button>
+                                            <button type="button" aria-label="Remove goal link" onClick={() => setFormGoalLinks(formGoalLinks.filter(l => l.goalId !== link.goalId))} style={{background:'transparent', border:'none', color:'inherit', marginLeft:'6px', cursor:'pointer'}}>×</button>
                                         </span>
                                     );
                                 })}
