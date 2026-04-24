@@ -1,0 +1,3 @@
+## 2024-04-24 - Added aria-labels to icon-only buttons
+**Learning:** Found multiple instances across the app where "clear" or "dismiss" actions were represented only by a visual "×" symbol without any screen reader text. This is a common pattern in custom form inputs, chips, and command bars.
+**Action:** Ensure all icon-only interactive elements, specifically clear/dismiss buttons across custom UI components, explicitly define `aria-label` attributes to maintain accessibility.
