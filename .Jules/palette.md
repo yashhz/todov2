@@ -1,0 +1,3 @@
+## 2024-05-15 - Missing Accessibility Labels on Icon-Only Buttons
+**Learning:** Found a pattern where icon-only buttons (like navigation arrows or edit/delete actions) lack accessibility labels and tooltips, particularly observed in the Habits view (`src/features/habits/Habits.tsx`). Without these, screen readers can't describe the button's function, and sighted users don't get helpful hover tooltips. Adding `aria-label` provides screen-reader support, while `title` adds hover support, achieving a dual benefit for accessibility and general UX.
+**Action:** When adding or reviewing icon-only buttons, always ensure both `aria-label` and `title` attributes are included to provide semantic meaning and visual tooltips.
