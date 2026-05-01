@@ -216,9 +216,9 @@ function InlineCalendar({ value, onChange }: { value: string; onChange: (d: stri
     return (
         <div className="tf-cal">
             <div className="tf-cal__nav">
-                <button type="button" className="tf-cal__nav-btn" onClick={prev}>‹</button>
+                <button type="button" className="tf-cal__nav-btn" aria-label="Previous month" onClick={prev}>‹</button>
                 <span className="tf-cal__month">{monthName}</span>
-                <button type="button" className="tf-cal__nav-btn" onClick={next}>›</button>
+                <button type="button" className="tf-cal__nav-btn" aria-label="Next month" onClick={next}>›</button>
             </div>
             <div className="tf-cal__grid">
                 {['S','M','T','W','T','F','S'].map((d, i) => (
