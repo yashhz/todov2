@@ -75,7 +75,7 @@ function DateNavigator({ selectedDate, onDateChange, habits }: { selectedDate: D
 
     return (
         <div className="date-navigator">
-            <button className="dn-arrow" onClick={() => {
+            <button className="dn-arrow" aria-label="Previous day" onClick={() => {
                 const prev = new Date(selectedDate);
                 prev.setDate(selectedDate.getDate() - 1);
                 onDateChange(prev);
@@ -115,7 +115,7 @@ function DateNavigator({ selectedDate, onDateChange, habits }: { selectedDate: D
                 })}
             </div>
 
-            <button className="dn-arrow" onClick={() => {
+            <button className="dn-arrow" aria-label="Next day" onClick={() => {
                 const next = new Date(selectedDate);
                 next.setDate(selectedDate.getDate() + 1);
                 onDateChange(next);
@@ -459,10 +459,10 @@ export default function HabitsPage() {
                                 })()}
                                 actions={
                                     <>
-                                        <button className="card__action-btn" onClick={e => { e.stopPropagation(); openEdit(habit); }}>
+                                        <button className="card__action-btn" aria-label="Edit habit" title="Edit habit" onClick={e => { e.stopPropagation(); openEdit(habit); }}>
                                             <Edit size={14} />
                                         </button>
-                                        <button className="card__action-btn card__action-btn--danger" onClick={e => { e.stopPropagation(); deleteHabit(habit.id); }}>
+                                        <button className="card__action-btn card__action-btn--danger" aria-label="Delete habit" title="Delete habit" onClick={e => { e.stopPropagation(); deleteHabit(habit.id); }}>
                                             <Trash2 size={14} />
                                         </button>
                                     </>
@@ -672,7 +672,7 @@ export default function HabitsPage() {
                                     {formTime ? formatTime12(formTime) : 'None'}
                                 </button>
                                 {formTime && (
-                                    <button type="button" onClick={() => setFormTime('')} style={{background:'transparent', border:'none', color:'rgba(255,255,255,0.25)', cursor:'pointer', marginLeft: '8px'}}>×</button>
+                                    <button type="button" aria-label="Clear time" onClick={() => setFormTime('')} style={{background:'transparent', border:'none', color:'rgba(255,255,255,0.25)', cursor:'pointer', marginLeft: '8px'}}>×</button>
                                 )}
                                 {showTimePicker && (
                                     <div style={{ position: 'absolute', bottom: 'calc(100% + 8px)', left: 0, zIndex: 10, background: 'var(--surface-overlay)', padding: '12px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--surface-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
@@ -690,7 +690,7 @@ export default function HabitsPage() {
                                         <span className="m-form__pill m-form__pill--active" style={{ pointerEvents: 'none' }}>
                                             {projects.find(p => p.id === formProjectId)?.name}
                                         </span>
-                                        <button onClick={() => setFormProjectId(null)} style={{ background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', marginLeft: '8px' }}>×</button>
+                                        <button aria-label="Clear project" onClick={() => setFormProjectId(null)} style={{ background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', marginLeft: '8px' }}>×</button>
                                     </div>
                                 ) : (
                                     <>
