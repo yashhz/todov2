@@ -115,7 +115,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({ onSubmit, placeholder = 
                     rows={1}
                 />
                 {input.trim() && (
-                     <button className="smart-input-submit" onClick={() => { onSubmit(parsedBatch); setInput(''); setDismissed(new Set()); setExpanded(false); }}>
+                     <button aria-label="Submit" className="smart-input-submit" onClick={() => { onSubmit(parsedBatch); setInput(''); setDismissed(new Set()); setExpanded(false); }}>
                          ↑
                      </button>
                 )}
@@ -127,7 +127,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({ onSubmit, placeholder = 
                     {parsed.tokens.map((token, i) => (
                         <span key={i} className="smart-chip" style={{ '--chip-color': TOKEN_COLORS[token.type] } as React.CSSProperties}>
                             {tokenLabel(token, goals, projects)}
-                            <button className="smart-chip-dismiss" onClick={(e) => { e.stopPropagation(); dismissToken(token.raw); }}>×</button>
+                            <button aria-label="Dismiss token" className="smart-chip-dismiss" onClick={(e) => { e.stopPropagation(); dismissToken(token.raw); }}>×</button>
                         </span>
                     ))}
                 </div>
