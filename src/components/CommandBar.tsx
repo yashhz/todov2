@@ -216,7 +216,7 @@ export default function CommandBar({ isOpen, onClose }: CommandBarProps) {
                             </div>
                         )}
                         {input && (
-                            <button className="cmd-clear" onClick={() => { setInput(''); setConfirmed(false); inputRef.current?.focus(); }}>
+                            <button aria-label="Clear input" className="cmd-clear" onClick={() => { setInput(''); setConfirmed(false); inputRef.current?.focus(); }}>
                                 ×
                             </button>
                         )}

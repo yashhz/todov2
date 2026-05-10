@@ -63,6 +63,7 @@ export default function Sidebar({ onOpenCmd }: { onOpenCmd: () => void }) {
 
                 {/* Quick Add */}
                 <button
+                    aria-label="Quick Add"
                     className="sidebar__cmd-btn"
                     onClick={onOpenCmd}
                     title="Quick Add (Ctrl+K)"
