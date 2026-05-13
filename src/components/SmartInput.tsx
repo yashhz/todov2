@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useGoals, useProjects } from '../hooks/useStore';
 import { parseBatch, formatParsedDate, formatParsedTime, formatDuration } from '../services/commandParser';
-import type { ParsedCommand, ParsedToken } from '../types';
+import type { ParsedCommand, ParsedToken, Goal, Project } from '../types';
 import { Calendar, Clock, Tag, Target, Flag } from 'lucide-react';
 import './SmartInput.css';
 
@@ -23,7 +23,7 @@ const TOKEN_COLORS: Record<ParsedToken['type'], string> = {
     project:    'var(--cmd-chip-project)',
 };
 
-function tokenLabel(token: ParsedToken, goals: any[], projects: any[]): string {
+function tokenLabel(token: ParsedToken, goals: Goal[], projects: Project[]): string {
     switch (token.type) {
         case 'date':       return formatParsedDate(token.value as string);
         case 'time':       return formatParsedTime(token.value as string);
@@ -127,7 +127,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({ onSubmit, placeholder = 
                     {parsed.tokens.map((token, i) => (
                         <span key={i} className="smart-chip" style={{ '--chip-color': TOKEN_COLORS[token.type] } as React.CSSProperties}>
                             {tokenLabel(token, goals, projects)}
-                            <button className="smart-chip-dismiss" onClick={(e) => { e.stopPropagation(); dismissToken(token.raw); }}>×</button>
+                            <button className="smart-chip-dismiss" onClick={(e) => { e.stopPropagation(); dismissToken(token.raw); }} title="Dismiss token" aria-label="Dismiss token">×</button>
                         </span>
                     ))}
                 </div>
