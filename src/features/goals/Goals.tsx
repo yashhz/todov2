@@ -527,7 +527,7 @@ export default function GoalsPage() {
                                             onChange={(e) => setFormUnit(e.target.value)}
                                             onFocus={() => setShowUnitPicker(true)}
                                         />
-                                        <button type="button" onClick={() => setShowUnitPicker(!showUnitPicker)} style={{position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background:'transparent', border:'none', color:'var(--text-secondary)', cursor:'pointer'}}>▾</button>
+                                        <button type="button" aria-label="Toggle unit picker" title="Toggle unit picker" onClick={() => setShowUnitPicker(!showUnitPicker)} style={{position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background:'transparent', border:'none', color:'var(--text-secondary)', cursor:'pointer'}}>▾</button>
                                     </div>
                                 </div>
                             </div>

@@ -160,7 +160,7 @@ export default function GoalDetail() {
                     <div className="gd2-task-list">
                         {activeTasks.map(task => (
                             <div key={task.id} className="gd2-task">
-                                <button className="gd2-task__check" onClick={() => toggleTask(task.id)}>
+                                <button className="gd2-task__check" aria-label={`Mark task ${task.title} as complete`} title="Mark as complete" onClick={() => toggleTask(task.id)}>
                                     <Circle size={17} />
                                 </button>
                                 <span className="gd2-task__title">{task.title}</span>
@@ -173,7 +173,7 @@ export default function GoalDetail() {
                         ))}
                         {doneTasks.map(task => (
                             <div key={task.id} className="gd2-task gd2-task--done">
-                                <button className="gd2-task__check" onClick={() => toggleTask(task.id)} style={{ color: '#22c55e' }}>
+                                <button className="gd2-task__check" aria-label={`Mark task ${task.title} as incomplete`} title="Mark as incomplete" onClick={() => toggleTask(task.id)} style={{ color: '#22c55e' }}>
                                     <CheckCircle2 size={17} />
                                 </button>
                                 <span className="gd2-task__title gd2-task__title--done">{task.title}</span>
@@ -203,6 +203,8 @@ export default function GoalDetail() {
                                     )}
                                     <button
                                         className={`gd2-habit__check ${isDone ? 'gd2-habit__check--done' : ''}`}
+                                        aria-label={isDone ? `Mark habit ${habit.title} as incomplete` : `Mark habit ${habit.title} as complete`}
+                                        title={isDone ? "Mark as incomplete" : "Mark as complete"}
                                         onClick={() => toggleHabit(habit.id, todayStr)}
                                         style={isDone ? { background: habit.color, borderColor: habit.color } : {}}
                                     >
