@@ -615,7 +615,7 @@ export default function TasksPage() {
                     <p className="tasks-subtitle">{activeCount} active · {completedCount} completed</p>
                 </div>
                 <div className="tasks-header-actions">
-                    <button className="tasks-seed-btn" onClick={seedDemoData} title="Populate app with demo data">
+                    <button className="tasks-seed-btn" onClick={seedDemoData} title="Populate app with demo data" aria-label="Populate app with demo data">
                         🌱 Seed Demo
                     </button>
                     <button className="m-add-btn" onClick={() => setShowForm(true)}>
