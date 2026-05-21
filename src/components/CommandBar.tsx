@@ -216,7 +216,7 @@ export default function CommandBar({ isOpen, onClose }: CommandBarProps) {
                             </div>
                         )}
                         {input && (
-                            <button className="cmd-clear" onClick={() => { setInput(''); setConfirmed(false); inputRef.current?.focus(); }}>
+                            <button className="cmd-clear" onClick={() => { setInput(''); setConfirmed(false); inputRef.current?.focus(); }} title="Clear input" aria-label="Clear input">
                                 ×
                             </button>
                         )}
@@ -236,7 +236,8 @@ export default function CommandBar({ isOpen, onClose }: CommandBarProps) {
                                 <button
                                     className="cmd-chip__dismiss"
                                     onClick={() => dismissToken(token.raw)}
-                                    title="Remove — treat as title text"
+                                    title="Remove token — treat as title text"
+                                    aria-label="Remove token"
                                 >×</button>
                             </span>
                         ))}
