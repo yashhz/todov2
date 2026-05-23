@@ -79,7 +79,7 @@ function DateNavigator({ selectedDate, onDateChange, habits }: { selectedDate: D
                 const prev = new Date(selectedDate);
                 prev.setDate(selectedDate.getDate() - 1);
                 onDateChange(prev);
-            }}><ChevronLeft size={16} /></button>
+            }} aria-label="Previous day" title="Previous day"><ChevronLeft size={16} /></button>
             
             <div className="dn-scroll" ref={scrollRef}>
                 {dates.map(d => {
@@ -119,7 +119,7 @@ function DateNavigator({ selectedDate, onDateChange, habits }: { selectedDate: D
                 const next = new Date(selectedDate);
                 next.setDate(selectedDate.getDate() + 1);
                 onDateChange(next);
-            }}><ChevronRight size={16} /></button>
+            }} aria-label="Next day" title="Next day"><ChevronRight size={16} /></button>
         </div>
     );
 }
@@ -459,10 +459,10 @@ export default function HabitsPage() {
                                 })()}
                                 actions={
                                     <>
-                                        <button className="card__action-btn" onClick={e => { e.stopPropagation(); openEdit(habit); }}>
+                                        <button className="card__action-btn" onClick={e => { e.stopPropagation(); openEdit(habit); }} aria-label="Edit habit" title="Edit habit">
                                             <Edit size={14} />
                                         </button>
-                                        <button className="card__action-btn card__action-btn--danger" onClick={e => { e.stopPropagation(); deleteHabit(habit.id); }}>
+                                        <button className="card__action-btn card__action-btn--danger" onClick={e => { e.stopPropagation(); deleteHabit(habit.id); }} aria-label="Delete habit" title="Delete habit">
                                             <Trash2 size={14} />
                                         </button>
                                     </>
@@ -505,6 +505,8 @@ export default function HabitsPage() {
                                                 className="h-count__submit"
                                                 style={{ background: habit.color }}
                                                 onClick={submitCount}
+                                                aria-label="Submit progress"
+                                                title="Submit progress"
                                             >✓</button>
                                         </div>
                                         <button className="h-count__skip" onClick={submitCount}>skip</button>
@@ -672,7 +674,7 @@ export default function HabitsPage() {
                                     {formTime ? formatTime12(formTime) : 'None'}
                                 </button>
                                 {formTime && (
-                                    <button type="button" onClick={() => setFormTime('')} style={{background:'transparent', border:'none', color:'rgba(255,255,255,0.25)', cursor:'pointer', marginLeft: '8px'}}>×</button>
+                                    <button type="button" onClick={() => setFormTime('')} style={{background:'transparent', border:'none', color:'rgba(255,255,255,0.25)', cursor:'pointer', marginLeft: '8px'}} aria-label="Clear time" title="Clear time">×</button>
                                 )}
                                 {showTimePicker && (
                                     <div style={{ position: 'absolute', bottom: 'calc(100% + 8px)', left: 0, zIndex: 10, background: 'var(--surface-overlay)', padding: '12px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--surface-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
@@ -690,7 +692,7 @@ export default function HabitsPage() {
                                         <span className="m-form__pill m-form__pill--active" style={{ pointerEvents: 'none' }}>
                                             {projects.find(p => p.id === formProjectId)?.name}
                                         </span>
-                                        <button onClick={() => setFormProjectId(null)} style={{ background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', marginLeft: '8px' }}>×</button>
+                                        <button type="button" onClick={() => setFormProjectId(null)} style={{ background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', marginLeft: '8px' }} aria-label="Clear project" title="Clear project">×</button>
                                     </div>
                                 ) : (
                                     <>
