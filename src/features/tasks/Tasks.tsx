@@ -963,7 +963,7 @@ export default function TasksPage() {
                                         : 'Pick date'}
                                 </button>
                                 {formDate && (
-                                    <button type="button" className="m-form__clear-date" onClick={() => { setFormDate(''); setShowCalendar(false); }} style={{background:'transparent', border:'none', color:'rgba(255,255,255,0.25)', cursor:'pointer'}}>×</button>
+                                    <button type="button" aria-label="Clear date" title="Clear date" className="m-form__clear-date" onClick={() => { setFormDate(''); setShowCalendar(false); }} style={{background:'transparent', border:'none', color:'rgba(255,255,255,0.25)', cursor:'pointer'}}>×</button>
                                 )}
                             </div>
 
