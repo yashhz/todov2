@@ -690,7 +690,7 @@ export default function HabitsPage() {
                                         <span className="m-form__pill m-form__pill--active" style={{ pointerEvents: 'none' }}>
                                             {projects.find(p => p.id === formProjectId)?.name}
                                         </span>
-                                        <button onClick={() => setFormProjectId(null)} style={{ background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', marginLeft: '8px' }}>×</button>
+                                        <button type="button" onClick={() => setFormProjectId(null)} style={{ background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', marginLeft: '8px' }} aria-label="Remove project" title="Remove project">×</button>
                                     </div>
                                 ) : (
                                     <>
