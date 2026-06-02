@@ -97,6 +97,7 @@ export default function TimePicker({ value, onChange, onClose }: TimePickerProps
             {/* Digital Display */}
             <div className="tp-display">
                 <button
+                    type="button"
                     className={`tp-display__segment ${mode === 'hours' ? 'tp-display__segment--active' : ''}`}
                     onClick={() => setMode('hours')}
                 >
@@ -104,6 +105,7 @@ export default function TimePicker({ value, onChange, onClose }: TimePickerProps
                 </button>
                 <span className="tp-display__colon">:</span>
                 <button
+                    type="button"
                     className={`tp-display__segment ${mode === 'minutes' ? 'tp-display__segment--active' : ''}`}
                     onClick={() => setMode('minutes')}
                 >
@@ -111,10 +113,12 @@ export default function TimePicker({ value, onChange, onClose }: TimePickerProps
                 </button>
                 <div className="tp-period">
                     <button
+                        type="button"
                         className={`tp-period__btn ${period === 'AM' ? 'tp-period__btn--active' : ''}`}
                         onClick={() => setPeriod('AM')}
                     >AM</button>
                     <button
+                        type="button"
                         className={`tp-period__btn ${period === 'PM' ? 'tp-period__btn--active' : ''}`}
                         onClick={() => setPeriod('PM')}
                     >PM</button>
@@ -186,6 +190,7 @@ export default function TimePicker({ value, onChange, onClose }: TimePickerProps
                     { label: 'Night', time: '21:00', icon: '🌙' },
                 ].map(p => (
                     <button
+                        type="button"
                         key={p.label}
                         className="tp-preset-btn"
                         onClick={() => {
@@ -202,7 +207,7 @@ export default function TimePicker({ value, onChange, onClose }: TimePickerProps
             </div>
 
             {onClose && (
-                <button className="tp-done-btn" onClick={onClose}>
+                <button type="button" className="tp-done-btn" onClick={onClose}>
                     Done
                 </button>
             )}

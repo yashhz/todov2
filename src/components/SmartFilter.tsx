@@ -56,6 +56,7 @@ export function SmartFilter({ groups, activeGroup, onToggleGroup, onClearAll, sh
 
                         <span className="sentence-trigger-wrap">
                             <button
+                                type="button"
                                 className={`sentence-trigger ${isActiveFilter ? 'sentence-trigger--active' : ''}`}
                                 onClick={() => onToggleGroup(activeGroup === group.id ? null : group.id)}
                             >
@@ -70,6 +71,7 @@ export function SmartFilter({ groups, activeGroup, onToggleGroup, onClearAll, sh
 
                                         return (
                                             <button
+                                                type="button"
                                                 key={opt.id}
                                                 className={`mini-opt ${isSelected ? 'mini-opt--active' : ''}`}
                                                 onClick={() => {
@@ -101,7 +103,7 @@ export function SmartFilter({ groups, activeGroup, onToggleGroup, onClearAll, sh
             })}
 
             {showClearAll && onClearAll && (
-                <button className="sentence-clear" onClick={onClearAll} title="Reset Filters">×</button>
+                <button type="button" aria-label="Reset all filters" className="sentence-clear" onClick={onClearAll} title="Reset Filters">×</button>
             )}
         </div>
     );

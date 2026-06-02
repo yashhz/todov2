@@ -769,7 +769,7 @@ export default function TasksPage() {
                                             >
                                                 <Calendar size={14} />
                                             </button>
-                                            <button className="card__action-btn card__action-btn--danger" onClick={(e) => { e.stopPropagation(); deleteTask(task.id); }} title="Delete" aria-label="Delete task">
+                                            <button type="button" className="card__action-btn card__action-btn--danger" onClick={(e) => { e.stopPropagation(); deleteTask(task.id); }} title="Delete" aria-label="Delete task">
                                                 ×
                                             </button>
                                         </div>
