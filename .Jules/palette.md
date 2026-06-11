@@ -1,0 +1,3 @@
+## 2024-06-25 - ARIA Labels for Icon-Only Clear Buttons
+**Learning:** The application heavily relies on icon-only '×' buttons across multiple contexts (modals, command bar, smart inputs) for clear and dismiss actions. These buttons natively lack textual context and are inaccessible to screen readers, causing a poor accessibility experience for users who rely on assistive technologies.
+**Action:** When implementing or updating inline clear/dismiss buttons that consist only of icons or symbols (like '×'), always include both an explicit `aria-label` and `title` to ensure the interaction's purpose is conveyed to screen readers and is understandable via tooltip. Also ensure custom buttons in forms explicitly declare `type="button"` to avoid accidental submissions.
