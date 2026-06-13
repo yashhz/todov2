@@ -1,0 +1,3 @@
+## 2024-10-24 - Accessibility of Inline Clear Buttons
+**Learning:** The codebase heavily uses custom inline controls with icon-only text (e.g., "×" or chevrons) for clearing or dismissing elements. These custom controls are sometimes missing `aria-label` and `title` attributes, severely impacting screen reader accessibility. Additionally, they sometimes omit the `type="button"` attribute, which can lead to accidental form submissions.
+**Action:** Always verify that custom inline controls include an explicit `aria-label` and `title`. When these buttons exist within forms, explicitly set `type="button"` to prevent unintended default behavior.
