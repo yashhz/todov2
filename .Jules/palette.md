@@ -1,0 +1,3 @@
+## 2024-06-14 - Icon-only buttons accessibility
+**Learning:** Custom inline controls with icon-only text (e.g., × or chevrons like in `SmartInput.tsx`, `CommandBar.tsx` and `SmartFilter.tsx`) often lack semantic meaning for screen readers. Furthermore, using `<button>` inside forms without explicitly setting `type="button"` can trigger unintended form submissions.
+**Action:** Always verify that inline icon buttons explicitly set `type="button"`, and include descriptive `aria-label` and `title` attributes for improved accessibility and usability.
