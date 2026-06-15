@@ -101,7 +101,7 @@ export function SmartFilter({ groups, activeGroup, onToggleGroup, onClearAll, sh
             })}
 
             {showClearAll && onClearAll && (
-                <button className="sentence-clear" onClick={onClearAll} title="Reset Filters">×</button>
+                <button type="button" className="sentence-clear" onClick={onClearAll} aria-label="Reset Filters" title="Reset Filters">×</button>
             )}
         </div>
     );
