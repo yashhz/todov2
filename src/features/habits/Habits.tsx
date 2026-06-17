@@ -75,11 +75,16 @@ function DateNavigator({ selectedDate, onDateChange, habits }: { selectedDate: D
 
     return (
         <div className="date-navigator">
-            <button className="dn-arrow" onClick={() => {
-                const prev = new Date(selectedDate);
-                prev.setDate(selectedDate.getDate() - 1);
-                onDateChange(prev);
-            }}><ChevronLeft size={16} /></button>
+            <button
+                className="dn-arrow"
+                onClick={() => {
+                    const prev = new Date(selectedDate);
+                    prev.setDate(selectedDate.getDate() - 1);
+                    onDateChange(prev);
+                }}
+                aria-label="Previous day"
+                title="Previous day"
+            ><ChevronLeft size={16} /></button>
             
             <div className="dn-scroll" ref={scrollRef}>
                 {dates.map(d => {
@@ -115,11 +120,16 @@ function DateNavigator({ selectedDate, onDateChange, habits }: { selectedDate: D
                 })}
             </div>
 
-            <button className="dn-arrow" onClick={() => {
-                const next = new Date(selectedDate);
-                next.setDate(selectedDate.getDate() + 1);
-                onDateChange(next);
-            }}><ChevronRight size={16} /></button>
+            <button
+                className="dn-arrow"
+                onClick={() => {
+                    const next = new Date(selectedDate);
+                    next.setDate(selectedDate.getDate() + 1);
+                    onDateChange(next);
+                }}
+                aria-label="Next day"
+                title="Next day"
+            ><ChevronRight size={16} /></button>
         </div>
     );
 }
@@ -459,10 +469,20 @@ export default function HabitsPage() {
                                 })()}
                                 actions={
                                     <>
-                                        <button className="card__action-btn" onClick={e => { e.stopPropagation(); openEdit(habit); }}>
+                                        <button
+                                            className="card__action-btn"
+                                            onClick={e => { e.stopPropagation(); openEdit(habit); }}
+                                            aria-label="Edit Habit"
+                                            title="Edit Habit"
+                                        >
                                             <Edit size={14} />
                                         </button>
-                                        <button className="card__action-btn card__action-btn--danger" onClick={e => { e.stopPropagation(); deleteHabit(habit.id); }}>
+                                        <button
+                                            className="card__action-btn card__action-btn--danger"
+                                            onClick={e => { e.stopPropagation(); deleteHabit(habit.id); }}
+                                            aria-label="Delete Habit"
+                                            title="Delete Habit"
+                                        >
                                             <Trash2 size={14} />
                                         </button>
                                     </>
