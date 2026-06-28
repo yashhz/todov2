@@ -234,9 +234,11 @@ export default function CommandBar({ isOpen, onClose }: CommandBarProps) {
                             >
                                 {tokenLabel(token, goals, projects)}
                                 <button
-                                    className="cmd-chip__dismiss"
+                                    type="button"
+                                    className="cmd-chip-dismiss"
                                     onClick={() => dismissToken(token.raw)}
-                                    title="Remove — treat as title text"
+                                    title={`Remove ${token.raw}`}
+                                    aria-label={`Remove ${token.raw}`}
                                 >×</button>
                             </span>
                         ))}
