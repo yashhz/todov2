@@ -115,7 +115,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({ onSubmit, placeholder = 
                     rows={1}
                 />
                 {input.trim() && (
-                     <button className="smart-input-submit" onClick={() => { onSubmit(parsedBatch); setInput(''); setDismissed(new Set()); setExpanded(false); }}>
+                     <button type="button" aria-label="Submit" title="Submit" className="smart-input-submit" onClick={() => { onSubmit(parsedBatch); setInput(''); setDismissed(new Set()); setExpanded(false); }}>
                          ↑
                      </button>
                 )}
@@ -127,7 +127,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({ onSubmit, placeholder = 
                     {parsed.tokens.map((token, i) => (
                         <span key={i} className="smart-chip" style={{ '--chip-color': TOKEN_COLORS[token.type] } as React.CSSProperties}>
                             {tokenLabel(token, goals, projects)}
-                            <button className="smart-chip-dismiss" onClick={(e) => { e.stopPropagation(); dismissToken(token.raw); }}>×</button>
+                            <button type="button" aria-label="Remove token" title="Remove token" className="smart-chip-dismiss" onClick={(e) => { e.stopPropagation(); dismissToken(token.raw); }}>×</button>
                         </span>
                     ))}
                 </div>
@@ -137,11 +137,11 @@ export const SmartInput: React.FC<SmartInputProps> = ({ onSubmit, placeholder = 
             {expanded && (
                 <div className="smart-input-drawer animate-fade-in-up">
                     <div className="smart-drawer-toolbar">
-                        <button className="smart-toolbar-btn" title="Set Date"><Calendar size={13} /> {parsed?.date ? formatParsedDate(parsed.date) : 'Date'}</button>
-                        <button className="smart-toolbar-btn" title="Set Time"><Clock size={13} /> {parsed?.time ? formatParsedTime(parsed.time) : 'Time'}</button>
-                        <button className="smart-toolbar-btn" title="Set Priority"><Flag size={13} /> {parsed?.priority ? parsed.priority : 'Priority'}</button>
-                        <button className="smart-toolbar-btn" title="Link Goal"><Target size={13} /> Goal</button>
-                        <button className="smart-toolbar-btn" title="Add Tag"><Tag size={13} /> Tag</button>
+                        <button type="button" className="smart-toolbar-btn" title="Set Date"><Calendar size={13} /> {parsed?.date ? formatParsedDate(parsed.date) : 'Date'}</button>
+                        <button type="button" className="smart-toolbar-btn" title="Set Time"><Clock size={13} /> {parsed?.time ? formatParsedTime(parsed.time) : 'Time'}</button>
+                        <button type="button" className="smart-toolbar-btn" title="Set Priority"><Flag size={13} /> {parsed?.priority ? parsed.priority : 'Priority'}</button>
+                        <button type="button" className="smart-toolbar-btn" title="Link Goal"><Target size={13} /> Goal</button>
+                        <button type="button" className="smart-toolbar-btn" title="Add Tag"><Tag size={13} /> Tag</button>
                     </div>
                     <div className="smart-drawer-hint">
                          <span><strong>↵</strong> to create · <strong>#h</strong> habit · <strong>@</strong> goal · <strong>#</strong> tag</span>
