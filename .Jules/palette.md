@@ -1,0 +1,3 @@
+## 2024-07-08 - Accessible Inline Controls
+**Learning:** Custom inline controls with icon-only text (e.g., × for dismiss/clear buttons) are completely inaccessible to screen readers if they lack semantic labeling. Additionally, they cause severe usability issues (accidental form submissions) when embedded inside form tags without an explicit `type="button"`.
+**Action:** Always verify that custom inline controls (like inline dismiss or clear buttons) include `type="button"`, an explicit `aria-label`, and a visible `title` tooltip to ensure they are fully accessible and behave correctly within forms.
